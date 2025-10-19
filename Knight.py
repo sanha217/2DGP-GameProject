@@ -11,7 +11,7 @@ frame_size = 128
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
-run_offset = [17, 9]
+run_offset = [1, 9]
 
 speed = 5
 
@@ -52,15 +52,17 @@ class Run:
                 self.knight.frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
             )
         else:
-            self.knight.image.clip_draw(
+            self.knight.image.clip_composite_draw(
                 self.knight.frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
+                0, 'h',
                 self.knight.x, self.knight.y,
-                flip = 'h'
+                frame_size, frame_size
             )
 
 class Idle:
@@ -85,15 +87,17 @@ class Idle:
                 self.knight.frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
             )
         else:
-            self.knight.image.clip_draw(
+            self.knight.image.clip_composite_draw(
                 self.knight.frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
+                0, 'h',
                 self.knight.x, self.knight.y,
-                flip = 'h'
+                frame_size, frame_size
             )
 
 
@@ -112,8 +116,17 @@ class Knight:
             self.IDLE,
             {
                 self.IDLE: {
-                    None: self.IDLE
-                }
+                    right_down: self.RUN,
+                    left_down: self.RUN,
+                    right_up: self.RUN,
+                    left_up: self.RUN
+                },
+                self.RUN: {
+                    right_down: self.IDLE,
+                    left_down: self.IDLE,
+                    right_up: self.IDLE,
+                    left_up: self.IDLE
+                },
             }
         )
 

@@ -12,11 +12,11 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             playing = False
         else:
-            # 추가하기
-            pass
+            knight.handle_state_event(event)
 
 def reset_world():
     global world
+    global knight
 
     world = []
 
