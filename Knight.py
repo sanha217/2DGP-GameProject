@@ -1,5 +1,7 @@
 from pico2d import load_image
 
+
+
 class Knight:
     def __init__(self):
         pass
@@ -8,4 +10,7 @@ class Knight:
         pass
 
     def draw(self):
+        pass
+
+    def handle_state_event(self, state):
         pass

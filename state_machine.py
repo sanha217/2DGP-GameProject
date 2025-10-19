@@ -10,5 +10,5 @@ class StateMachine:
     def draw(self):
         pass
 
-    def handle_state_event(self):
+    def handle_state_event(self, event):
         pass
