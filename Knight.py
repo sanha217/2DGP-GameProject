@@ -1,5 +1,7 @@
 from pico2d import load_image
 
+from state_machine import StateMachine
+
 canvas_width = 1280
 canvas_height = 720
 image_size = 2048
@@ -49,6 +51,8 @@ class Knight:
         self.image = load_image('knight.png')
 
         self.IDLE = Idle(self)
+        self.state_machine = StateMachine(
+        )
 
     def update(self):
         pass
