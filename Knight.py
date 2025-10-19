@@ -1,6 +1,8 @@
 from pico2d import load_image, get_time
-
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
 from state_machine import StateMachine
+
+# 설정 변수
 
 canvas_width = 1280
 canvas_height = 720
@@ -13,14 +15,28 @@ run_offset = [17, 9]
 
 speed = 5
 
+# 이벤트 체크 함수
+
+def right_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RIGHT
+
+def right_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_RIGHT
+
+def left_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_LEFT
+
+def left_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
+
 class Run:
     def __init__(self, knight):
         self.knight = knight
 
     def enter(self, event):
-        if right_down(e) or left_up(e):
+        if right_down(event) or left_up(event):
             self.knight.dir = self.knight.face_dir = 1
-        elif left_down(e) or right_up(e):
+        elif left_down(event) or right_up(event):
             self.knight.dir = self.knight.face_dir = -1
 
     def exit(self):
