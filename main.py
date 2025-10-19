@@ -3,13 +3,32 @@ from Background import Background
 
 
 def reset_world():
-    pass
+    global world
+
+    world = []
+
+    bg = Background()
+    world.append(bg)
+
+    # 추가하기
 
 def update_world():
-    pass
+    for o in world:
+        o.update()
 
 def render_world():
-    pass
+    clear_canvas()
+    for o in world:
+        o.draw()
+    update_canvas()
 
 if __name__ == '__main__':
-    pass
+    open_canvas()
+    reset_world()
+
+    while True:
+        update_world()
+        render_world()
+        delay(0.01)
+
+    close_canvas()
