@@ -34,6 +34,7 @@ class Run:
         self.knight = knight
 
     def enter(self, event):
+        self.knight.frame = 0
         if right_down(event) or left_up(event):
             self.knight.dir = self.knight.face_dir = 1
         elif left_down(event) or right_up(event):
@@ -70,6 +71,7 @@ class Idle:
         self.knight = knight
 
     def enter(self, event):
+        self.knight.frame = 0
         self.knight.dir = 0
         self.knight.idle_start_time = get_time()
 
