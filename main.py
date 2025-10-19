@@ -23,7 +23,10 @@ def render_world():
     update_canvas()
 
 if __name__ == '__main__':
-    open_canvas()
+    canvas_width = 1280
+    canvas_height = 720
+
+    open_canvas(canvas_width, canvas_height)
     reset_world()
 
     while True:
