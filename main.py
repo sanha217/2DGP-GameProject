@@ -1,5 +1,6 @@
 from pico2d import *
 from Background import Background
+from Knight import Knight
 
 
 def reset_world():
@@ -10,6 +11,8 @@ def reset_world():
     bg = Background()
     world.append(bg)
 
+    knight = Knight()
+    world.append(knight)
     # 추가하기
 
 def update_world():
