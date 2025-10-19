@@ -1,4 +1,4 @@
-from pico2d import load_image
+from pico2d import load_image, get_time
 
 from state_machine import StateMachine
 
@@ -7,21 +7,24 @@ canvas_height = 720
 image_size = 2048
 frame_size = 128
 
-idle_y_offset = 8
-run_y_offset = 16
+idle_y_offset = 9
+run_y_offset = 17
 
 class Idle:
     def __init__(self, knight):
         self.knight = knight
 
-    def enter(self):
+    def enter(self, event):
         self.knight.dir = 0
+        self.knight.idle_start_time = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        self.knight.frame = (self.knight.frame + 1) % 7
+        if get_time() - self.knight.idle_start_time >= 0.2:
+            self.knight.frame = (self.knight.frame + 1) % 7
+            self.knight.idle_start_time = get_time()
 
     def draw(self):
         if self.knight.face_dir == 1:
@@ -52,13 +55,19 @@ class Knight:
 
         self.IDLE = Idle(self)
         self.state_machine = StateMachine(
+            self.IDLE,
+            {
+                self.IDLE: {
+                    None: self.IDLE
+                }
+            }
         )
 
     def update(self):
-        pass
+        self.state_machine.update()
 
     def draw(self):
-        pass
+        self.state_machine.draw()
 
-    def handle_state_event(self, state):
-        pass
+    def handle_state_event(self, event):
+        self.state_machine.handle_state_event(('INPUT', event))
