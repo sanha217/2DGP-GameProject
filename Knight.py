@@ -55,6 +55,20 @@ class Jump:
         pass
 
     def do(self):
+        max_velocity = 20.0
+        min_velocity = -20.0
+        velocity_range = max_velocity - min_velocity
+        num_frames = jump_offset[1]
+        clamped_v = self.knight.y_velocity
+        if clamped_v > max_velocity:
+            clamped_v = max_velocity
+        elif clamped_v < min_velocity:
+            clamped_v = min_velocity
+        percentage = (clamped_v - min_velocity) / velocity_range
+        reversed_percentage = 1.0 - percentage
+        target_frame = int(reversed_percentage * (num_frames - 1))
+
+        self.knight.frame = target_frame
         self.knight.x += self.knight.dir * x_velocity
         self.knight.y += self.knight.y_velocity
         self.knight.y_velocity -= self.knight.gravity
