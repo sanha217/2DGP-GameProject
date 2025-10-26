@@ -12,10 +12,12 @@ frame_size = 128
 ground = 90
 x_velocity = 5
 y_velocity = 5
+gravity = 0.1
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
 run_offset = [1, 9]
+jump_offset = [10, 12]
 
 # 이벤트 체크 함수
 
@@ -34,20 +36,51 @@ def left_up(e):
 # 상태 클래스
 
 class Jump:
+    global y_velocity
+
     def __init__(self, knight):
-        pass
+        self.knight = knight
 
     def enter(self, event):
-        pass
+        self.knight.frame = 0
 
     def exit(self):
         pass
 
     def do(self):
-        pass
+        self.knight.y += y_velocity
+        y_velocity -= gravity
+
+        if self.knight.y <= ground:
+            self.knight.y = ground
+
+            if self.knight.dir == 0:
+                next_state = self.knight.IDLE
+            else:
+                next_state = self.knight.RUN
+
+            self.knight.state_machine.cur_state.exit()
+            self.knight.state_machine.cur_state = next_state
+            self.knight.state_machine.handle_state_event(('LAND', 0))
 
     def draw(self):
-        pass
+        if self.knight.face_dir == 1:
+            self.knight.image.clip_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * jump_offset[0],
+                frame_size, frame_size,
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
+        else:
+            self.knight.image.clip_composite_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * jump_offset[0],
+                frame_size, frame_size,
+                0, 'h',
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
 
 class Run:
     def __init__(self, knight):
