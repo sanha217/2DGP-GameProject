@@ -8,6 +8,7 @@ canvas_width = 1280
 canvas_height = 720
 image_size = 2048
 frame_size = 128
+ground = 90
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
@@ -102,11 +103,10 @@ class Idle:
                 frame_size, frame_size
             )
 
-
 class Knight:
     def __init__(self):
         self.x = canvas_width // 2 # 임시 시작 위치
-        self.y = 90
+        self.y = ground
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
