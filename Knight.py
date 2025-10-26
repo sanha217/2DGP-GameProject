@@ -40,6 +40,37 @@ def z_down(e):
 
 # 상태 클래스
 
+class Dash:
+    def __init__(self, knight):
+        self.knight = knight
+
+    def enter(self, event):
+        self.knight.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+
+    def draw(self):
+        if self.knight.face_dir == 1:
+            self.knight.image.clip_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * dash_offset[0],
+                frame_size, frame_size,
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
+        else:
+            self.knight.image.clip_composite_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * dash_offset[0],
+                frame_size, frame_size,
+                0, 'h',
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
+
 class Jump:
     global y_velocity
 
