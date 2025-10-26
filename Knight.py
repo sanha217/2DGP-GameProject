@@ -1,5 +1,5 @@
 from pico2d import load_image, get_time
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_Z
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_z
 from state_machine import StateMachine
 
 # 설정 변수
@@ -36,21 +36,58 @@ def space_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
 def z_down(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_Z
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_z
 
 # 상태 클래스
 
 class Dash:
     def __init__(self, knight):
         self.knight = knight
+        self.dash_distance = frame_size * 3
+        self.dash_speed = 25
 
     def enter(self, event):
         self.knight.frame = 0
+        self.knight.dir = self.knight.face_dir
+        self.start_x = self.knight.x
 
     def exit(self):
-        pass
+        self.knight.dir = 0
 
     def do(self):
+        total_frames = dash_offset[1]
+        total_distance = self.dash_distance
+        traveled_distance = abs(self.knight.x - self.start_x)
+        if total_distance == 0:
+            percentage = 1.0
+        else:
+            percentage = traveled_distance / total_distance
+
+        self.knight.frame = int(percentage * total_frames)
+
+        if self.knight.frame >= total_frames:
+            self.knight.frame = total_frames - 1
+
+        self.knight.x += self.knight.dir * self.dash_speed
+        self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
+
+        hit_wall = False
+        if self.knight.dir == 1 and self.knight.x == canvas_width - frame_size // 2:
+            hit_wall = True
+        elif self.knight.dir == -1 and self.knight.x == frame_size // 2:
+            hit_wall = True
+        traveled_distance = abs(self.knight.x - self.start_x)
+
+        if traveled_distance >= self.dash_distance or hit_wall:
+            if self.knight.y > ground:
+                next_state = self.knight.JUMP
+            else:
+                next_state = self.knight.IDLE
+
+            self.knight.state_machine.cur_state.exit()
+            self.knight.state_machine.cur_state = next_state
+            self.knight.state_machine.cur_state.enter(('DASH_END', 0))
+
 
     def draw(self):
         if self.knight.face_dir == 1:
@@ -226,6 +263,7 @@ class Knight:
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
+        self.DASH = Dash(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
@@ -234,20 +272,25 @@ class Knight:
                     left_down: self.RUN,
                     right_up: self.RUN,
                     left_up: self.RUN,
-                    space_down: self.JUMP
+                    space_down: self.JUMP,
+                    z_down: self.DASH
                 },
                 self.RUN: {
                     right_down: self.IDLE,
                     left_down: self.IDLE,
                     right_up: self.IDLE,
                     left_up: self.IDLE,
-                    space_down: self.JUMP
+                    space_down: self.JUMP,
+                    z_down: self.DASH
                 },
                 self.JUMP: {
                     right_down: self.JUMP,
                     left_down: self.JUMP,
                     right_up: self.JUMP,
-                    left_up: self.JUMP
+                    left_up: self.JUMP,
+                    z_down: self.DASH
+                },
+                self.DASH: {
                 }
             }
         )
