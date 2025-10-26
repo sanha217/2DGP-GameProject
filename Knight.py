@@ -8,14 +8,14 @@ canvas_width = 1280
 canvas_height = 720
 image_size = 2048
 frame_size = 128
+
 ground = 90
+x_velocity = 5
+y_velocity = 5
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
 run_offset = [1, 9]
-
-x_velocity = 5
-y_velocity = 5
 
 # 이벤트 체크 함수
 
@@ -30,6 +30,24 @@ def left_down(e):
 
 def left_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
+
+# 상태 클래스
+
+class Jump:
+    def __init__(self, knight):
+        pass
+
+    def enter(self, event):
+        pass
+
+    def exit(self):
+        pass
+
+    def do(self):
+        pass
+
+    def draw(self):
+        pass
 
 class Run:
     def __init__(self, knight):
