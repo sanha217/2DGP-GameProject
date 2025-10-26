@@ -1,5 +1,5 @@
 from pico2d import load_image, get_time
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_Z
 from state_machine import StateMachine
 
 # 설정 변수
@@ -16,6 +16,7 @@ x_velocity = 5
 idle_offset = [9, 7]
 run_offset = [1, 9]
 jump_offset = [10, 12]
+dash_offset = [5, 7]
 
 # 이벤트 체크 함수
 
