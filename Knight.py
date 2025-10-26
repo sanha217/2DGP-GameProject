@@ -14,7 +14,8 @@ ground = 90
 idle_offset = [9, 7]
 run_offset = [1, 9]
 
-speed = 5
+x_velocity = 5
+y_velocity = 5
 
 # 이벤트 체크 함수
 
@@ -46,7 +47,7 @@ class Run:
 
     def do(self):
         self.knight.frame = (self.knight.frame + 1) % run_offset[1]
-        self.knight.x += self.knight.dir * speed
+        self.knight.x += self.knight.dir * x_velocity
 
     def draw(self):
         if self.knight.face_dir == 1:
