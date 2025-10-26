@@ -46,11 +46,16 @@ class Jump:
         self.knight.frame = 0
         if space_down(event):
             self.knight.y_velocity = 20
+        elif right_down(event) or left_up(event):
+            self.knight.dir = self.knight.face_dir = 1
+        elif left_down(event) or right_up(event):
+            self.knight.dir = self.knight.face_dir = -1
 
     def exit(self):
         pass
 
     def do(self):
+        self.knight.x += self.knight.dir * x_velocity
         self.knight.y += self.knight.y_velocity
         self.knight.y_velocity -= self.knight.gravity
 
@@ -190,6 +195,10 @@ class Knight:
                     space_down: self.JUMP
                 },
                 self.JUMP: {
+                    right_down: self.JUMP,
+                    left_down: self.JUMP,
+                    right_up: self.JUMP,
+                    left_up: self.JUMP
                 }
             }
         )
