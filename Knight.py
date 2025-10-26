@@ -11,8 +11,6 @@ frame_size = 128
 
 ground = 90
 x_velocity = 5
-y_velocity = 5
-gravity = 0.1
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
@@ -46,13 +44,15 @@ class Jump:
 
     def enter(self, event):
         self.knight.frame = 0
+        if space_down(event):
+            self.knight.y_velocity = 20
 
     def exit(self):
         pass
 
     def do(self):
-        self.knight.y += y_velocity
-        y_velocity -= gravity
+        self.knight.y += self.knight.y_velocity
+        self.knight.y_velocity -= self.knight.gravity
 
         if self.knight.y <= ground:
             self.knight.y = ground
@@ -64,7 +64,7 @@ class Jump:
 
             self.knight.state_machine.cur_state.exit()
             self.knight.state_machine.cur_state = next_state
-            self.knight.state_machine.handle_state_event(('LAND', 0))
+            self.knight.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
         if self.knight.face_dir == 1:
@@ -162,6 +162,8 @@ class Knight:
     def __init__(self):
         self.x = canvas_width // 2 # 임시 시작 위치
         self.y = ground
+        self.y_velocity = 0
+        self.gravity = 0.7
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
@@ -169,6 +171,7 @@ class Knight:
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
+        self.JUMP = Jump(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
@@ -176,14 +179,18 @@ class Knight:
                     right_down: self.RUN,
                     left_down: self.RUN,
                     right_up: self.RUN,
-                    left_up: self.RUN
+                    left_up: self.RUN,
+                    space_down: self.JUMP
                 },
                 self.RUN: {
                     right_down: self.IDLE,
                     left_down: self.IDLE,
                     right_up: self.IDLE,
-                    left_up: self.IDLE
+                    left_up: self.IDLE,
+                    space_down: self.JUMP
                 },
+                self.JUMP: {
+                }
             }
         )
 
