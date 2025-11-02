@@ -45,7 +45,7 @@ def x_down(e):
 # 상태 클래스
 
 class Attack:
-    def init(self, knight):
+    def __init__(self, knight):
         self.knight = knight
 
     def enter(self, event):
@@ -56,6 +56,15 @@ class Attack:
 
     def do(self):
         self.knight.frame = (self.knight.frame + 1) % attack_offset[1]
+        if self.knight.frame == 7:
+            if self.knight.y > ground:
+                next_state = self.knight.JUMP
+            else:
+                next_state = self.knight.IDLE
+
+            self.knight.state_machine.cur_state.exit()
+            self.knight.state_machine.cur_state = next_state
+            self.knight.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
         if self.knight.face_dir == 1:
@@ -300,6 +309,7 @@ class Knight:
         self.RUN = Run(self)
         self.JUMP = Jump(self)
         self.DASH = Dash(self)
+        self.ATTACK = Attack(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
@@ -309,7 +319,8 @@ class Knight:
                     right_up: self.RUN,
                     left_up: self.RUN,
                     space_down: self.JUMP,
-                    z_down: self.DASH
+                    z_down: self.DASH,
+                    x_down: self.ATTACK
                 },
                 self.RUN: {
                     right_down: self.IDLE,
@@ -317,16 +328,20 @@ class Knight:
                     right_up: self.IDLE,
                     left_up: self.IDLE,
                     space_down: self.JUMP,
-                    z_down: self.DASH
+                    z_down: self.DASH,
+                    x_down: self.ATTACK
                 },
                 self.JUMP: {
                     right_down: self.JUMP,
                     left_down: self.JUMP,
                     right_up: self.JUMP,
                     left_up: self.JUMP,
-                    z_down: self.DASH
+                    z_down: self.DASH,
+                    x_down: self.ATTACK
                 },
                 self.DASH: {
+                },
+                self.ATTACK: {
                 }
             }
         )
