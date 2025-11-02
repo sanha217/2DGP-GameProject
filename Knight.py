@@ -48,6 +48,7 @@ def x_down(e):
 class Attack:
     def __init__(self, knight):
         self.knight = knight
+        self.attack_box_offset = (-51, -47, 37, 50) # 공격 히트박스 크기
 
     def enter(self, event):
         self.knight.frame = 0
@@ -101,6 +102,22 @@ class Attack:
                 self.knight.x + (60 * self.knight.face_dir), self.knight.y - 20,
                 frame_size, frame_size
             )
+
+    def get_attack_box(self):
+        l_offset, b_offset, r_offset, t_offset = self.attack_box_offset
+
+        if self.knight.face_dir == 1:
+            left = self.knight.x + l_offset
+            bottom = self.knight.y + b_offset
+            right = self.knight.x + r_offset
+            top = self.knight.y + t_offset
+            return (left, bottom, right, top)
+        else:
+            left = self.knight.x - r_offset
+            bottom = self.knight.y + b_offset
+            right = self.knight.x - l_offset
+            top = self.knight.y + t_offset
+            return (left, bottom, right, top)
 
 
 class Dash:
@@ -171,6 +188,9 @@ class Dash:
                 frame_size, frame_size
             )
 
+    def get_attack_box(self):
+        return None
+
 class Jump:
     global y_velocity
 
@@ -239,6 +259,9 @@ class Jump:
                 frame_size, frame_size
             )
 
+    def get_attack_box(self):
+        return None
+
 class Run:
     def __init__(self, knight):
         self.knight = knight
@@ -276,6 +299,9 @@ class Run:
                 frame_size, frame_size
             )
 
+    def get_attack_box(self):
+        return None
+
 class Idle:
     def __init__(self, knight):
         self.knight = knight
@@ -312,6 +338,9 @@ class Idle:
                 frame_size, frame_size
             )
 
+    def get_attack_box(self):
+        return None
+
 class Knight:
     def __init__(self):
         self.x = canvas_width // 2 # 임시 시작 위치
@@ -321,6 +350,7 @@ class Knight:
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
+        self.body_box_offset = (-30, 0, 30, 100) # 히트박스 크기
         self.image = load_image('knight.png')
 
         self.IDLE = Idle(self)
@@ -372,3 +402,15 @@ class Knight:
 
     def handle_state_event(self, event):
         self.state_machine.handle_state_event(('INPUT', event))
+
+    def get_body_box(self):
+        l = self.x + self.body_box_offset[0]
+        b = self.y + self.body_box_offset[1]
+        r = self.x + self.body_box_offset[2]
+        t = self.y + self.body_box_offset[3]
+        return (l, b, r, t)
+
+    def get_attack_box(self):
+        if hasattr(self.state_machine.cur_state, 'get_attack_box'):
+            return self.state_machine.cur_state.get_attack_box()
+        return None
