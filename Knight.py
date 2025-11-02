@@ -44,6 +44,22 @@ def x_down(e):
 
 # 상태 클래스
 
+class Attack:
+    def init(self, knight):
+        self.knight = knight
+
+    def enter(self, event):
+        self.knight.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+        pass
+
+    def draw(self):
+        pass
+
 class Dash:
     def __init__(self, knight):
         self.knight = knight
