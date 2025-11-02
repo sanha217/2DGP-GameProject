@@ -55,10 +55,26 @@ class Attack:
         pass
 
     def do(self):
-        pass
+        self.knight.frame = (self.knight.frame + 1) % attack_offset[1]
 
     def draw(self):
-        pass
+        if self.knight.face_dir == 1:
+            self.knight.image.clip_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * attack_offset[0],
+                frame_size, frame_size,
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
+        else:
+            self.knight.image.clip_composite_draw(
+                self.knight.frame * frame_size,
+                image_size - frame_size * attack_offset[0],
+                frame_size, frame_size,
+                0, 'h',
+                self.knight.x, self.knight.y,
+                frame_size, frame_size
+            )
 
 class Dash:
     def __init__(self, knight):
