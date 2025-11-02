@@ -17,6 +17,7 @@ idle_offset = [9, 7]
 run_offset = [1, 9]
 jump_offset = [10, 12]
 dash_offset = [5, 7]
+attack_offset = [4, 8]
 
 # 이벤트 체크 함수
 
@@ -37,6 +38,9 @@ def space_down(e):
 
 def z_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_z
+
+def x_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_x
 
 # 상태 클래스
 
