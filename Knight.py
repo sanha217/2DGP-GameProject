@@ -18,6 +18,7 @@ run_offset = [1, 9]
 jump_offset = [10, 12]
 dash_offset = [5, 7]
 attack_offset = [4, 8]
+attack_effect_offset = [13, 14]
 
 # 이벤트 체크 함수
 
