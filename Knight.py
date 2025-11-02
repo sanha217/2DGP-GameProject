@@ -1,4 +1,4 @@
-from pico2d import load_image, get_time
+from pico2d import load_image, get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_z, SDLK_x
 from state_machine import StateMachine
 
@@ -106,17 +106,20 @@ class Attack:
     def get_attack_box(self):
         l_offset, b_offset, r_offset, t_offset = self.attack_box_offset
 
+        attack_x = self.knight.x + (60 * self.knight.face_dir)
+        attack_y = self.knight.y - 20
+
         if self.knight.face_dir == 1:
-            left = self.knight.x + l_offset
-            bottom = self.knight.y + b_offset
-            right = self.knight.x + r_offset
-            top = self.knight.y + t_offset
+            left = attack_x + l_offset
+            bottom = attack_y + b_offset
+            right = attack_x + r_offset
+            top = attack_y + t_offset
             return (left, bottom, right, top)
         else:
-            left = self.knight.x - r_offset
-            bottom = self.knight.y + b_offset
-            right = self.knight.x - l_offset
-            top = self.knight.y + t_offset
+            left = attack_x - r_offset
+            bottom = attack_y + b_offset
+            right = attack_x - l_offset
+            top = attack_y + t_offset
             return (left, bottom, right, top)
 
 
@@ -399,6 +402,9 @@ class Knight:
 
     def draw(self):
         self.state_machine.draw()
+        attack_box = self.get_attack_box()
+        if attack_box:
+            draw_rectangle(*attack_box)
 
     def handle_state_event(self, event):
         self.state_machine.handle_state_event(('INPUT', event))
