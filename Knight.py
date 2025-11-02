@@ -18,7 +18,7 @@ run_offset = [1, 9]
 jump_offset = [10, 12]
 dash_offset = [5, 7]
 attack_offset = [4, 8]
-attack_effect_offset = [13, 14]
+attack_effect_offset = [13, 13]
 
 # 이벤트 체크 함수
 
@@ -76,6 +76,14 @@ class Attack:
                 self.knight.x, self.knight.y,
                 frame_size, frame_size
             )
+            self.knight.image.clip_composite_draw(
+                attack_effect_offset[1] * frame_size,
+                image_size - frame_size * attack_effect_offset[0],
+                frame_size, frame_size,
+                0, 'v',
+                self.knight.x + (60 * self.knight.face_dir), self.knight.y - 20,
+                frame_size, frame_size
+            )
         else:
             self.knight.image.clip_composite_draw(
                 self.knight.frame * frame_size,
@@ -85,6 +93,15 @@ class Attack:
                 self.knight.x, self.knight.y,
                 frame_size, frame_size
             )
+            self.knight.image.clip_composite_draw(
+                attack_effect_offset[1] * frame_size,
+                image_size - frame_size * attack_effect_offset[0],
+                frame_size, frame_size,
+                0, 'vh',
+                self.knight.x + (60 * self.knight.face_dir), self.knight.y - 20,
+                frame_size, frame_size
+            )
+
 
 class Dash:
     def __init__(self, knight):
