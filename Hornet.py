@@ -50,155 +50,155 @@ def quote_down(e):
 
 
 class Attack:
-    def __init__(self, knight):
-        self.knight = knight
+    def __init__(self, hornet):
+        self.hornet = hornet
         self.attack_box_offset = (-51, -47, 37, 50)
 
     def enter(self, event):
-        self.knight.frame = 0
+        self.hornet.frame = 0
 
     def exit(self):
         pass
 
     def do(self):
-        self.knight.frame = (self.knight.frame + 1) % attack_offset[1]
-        if self.knight.frame == 7:
+        self.hornet.frame = (self.hornet.frame + 1) % attack_offset[1]
+        if self.hornet.frame == 7:
             keystate = SDL_GetKeyboardState(None)
 
-            if self.knight.y > ground:
-                next_state = self.knight.JUMP
+            if self.hornet.y > ground:
+                next_state = self.hornet.JUMP
             elif keystate[SDL_SCANCODE_L]:
-                self.knight.dir = 1
-                self.knight.face_dir = 1
-                next_state = self.knight.RUN
+                self.hornet.dir = 1
+                self.hornet.face_dir = 1
+                next_state = self.hornet.RUN
             elif keystate[SDL_SCANCODE_J]:
-                self.knight.dir = -1
-                self.knight.face_dir = -1
-                next_state = self.knight.RUN
+                self.hornet.dir = -1
+                self.hornet.face_dir = -1
+                next_state = self.hornet.RUN
             else:
-                next_state = self.knight.IDLE
+                next_state = self.hornet.IDLE
 
-            self.knight.state_machine.cur_state.exit()
-            self.knight.state_machine.cur_state = next_state
-            self.knight.state_machine.cur_state.enter(('ATTACK_END', 0))
+            self.hornet.state_machine.cur_state.exit()
+            self.hornet.state_machine.cur_state = next_state
+            self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
-        if self.knight.face_dir == 1:
-            self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * attack_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
-            self.knight.image.clip_composite_draw(
+            self.hornet.image.clip_composite_draw(
                 attack_effect_offset[1] * frame_size,
                 image_size - frame_size * attack_effect_offset[0],
                 frame_size, frame_size,
                 0, 'v',
-                self.knight.x + (60 * self.knight.face_dir), self.knight.y - 20,
+                self.hornet.x + (60 * self.hornet.face_dir), self.hornet.y - 20,
                 frame_size, frame_size
             )
         else:
-            self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+            self.hornet.image.clip_composite_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * attack_offset[0],
                 frame_size, frame_size,
                 0, 'h',
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
-            self.knight.image.clip_composite_draw(
+            self.hornet.image.clip_composite_draw(
                 attack_effect_offset[1] * frame_size,
                 image_size - frame_size * attack_effect_offset[0],
                 frame_size, frame_size,
                 0, 'vh',
-                self.knight.x + (60 * self.knight.face_dir), self.knight.y - 20,
+                self.hornet.x + (60 * self.hornet.face_dir), self.hornet.y - 20,
                 frame_size, frame_size
             )
 
     def get_attack_box(self):
         l_offset, b_offset, r_offset, t_offset = self.attack_box_offset
-        attack_x = self.knight.x + (60 * self.knight.face_dir)
-        attack_y = self.knight.y - 20
+        attack_x = self.hornet.x + (60 * self.hornet.face_dir)
+        attack_y = self.hornet.y - 20
 
-        if self.knight.face_dir == 1:
+        if self.hornet.face_dir == 1:
             return (attack_x + l_offset, attack_y + b_offset, attack_x + r_offset, attack_y + t_offset)
         else:
             return (attack_x - r_offset, attack_y + b_offset, attack_x - l_offset, attack_y + t_offset)
 
 
 class Dash:
-    def __init__(self, knight):
-        self.knight = knight
+    def __init__(self, hornet):
+        self.hornet = hornet
         self.dash_distance = frame_size * 3
         self.dash_speed = 25
 
     def enter(self, event):
-        self.knight.frame = 0
-        self.knight.dir = self.knight.face_dir
-        self.start_x = self.knight.x
+        self.hornet.frame = 0
+        self.hornet.dir = self.hornet.face_dir
+        self.start_x = self.hornet.x
 
     def exit(self):
-        self.knight.dir = 0
+        self.hornet.dir = 0
 
     def do(self):
         total_frames = dash_offset[1]
         total_distance = self.dash_distance
-        traveled_distance = abs(self.knight.x - self.start_x)
+        traveled_distance = abs(self.hornet.x - self.start_x)
 
         percentage = 1.0 if total_distance == 0 else traveled_distance / total_distance
-        self.knight.frame = int(percentage * total_frames)
-        if self.knight.frame >= total_frames:
-            self.knight.frame = total_frames - 1
+        self.hornet.frame = int(percentage * total_frames)
+        if self.hornet.frame >= total_frames:
+            self.hornet.frame = total_frames - 1
 
-        self.knight.x += self.knight.dir * self.dash_speed
-        self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
+        self.hornet.x += self.hornet.dir * self.dash_speed
+        self.hornet.x = max(frame_size // 2, min(self.hornet.x, canvas_width - frame_size // 2))
 
         hit_wall = False
-        if self.knight.dir == 1 and self.knight.x == canvas_width - frame_size // 2:
+        if self.hornet.dir == 1 and self.hornet.x == canvas_width - frame_size // 2:
             hit_wall = True
-        elif self.knight.dir == -1 and self.knight.x == frame_size // 2:
+        elif self.hornet.dir == -1 and self.hornet.x == frame_size // 2:
             hit_wall = True
 
-        traveled_distance = abs(self.knight.x - self.start_x)
+        traveled_distance = abs(self.hornet.x - self.start_x)
 
         if traveled_distance >= self.dash_distance or hit_wall:
             keystate = SDL_GetKeyboardState(None)
 
-            if self.knight.y > ground:
-                next_state = self.knight.JUMP
+            if self.hornet.y > ground:
+                next_state = self.hornet.JUMP
             elif keystate[SDL_SCANCODE_L]:
-                self.knight.dir = 1
-                self.knight.face_dir = 1
-                next_state = self.knight.RUN
+                self.hornet.dir = 1
+                self.hornet.face_dir = 1
+                next_state = self.hornet.RUN
             elif keystate[SDL_SCANCODE_J]:
-                self.knight.dir = -1
-                self.knight.face_dir = -1
-                next_state = self.knight.RUN
+                self.hornet.dir = -1
+                self.hornet.face_dir = -1
+                next_state = self.hornet.RUN
             else:
-                next_state = self.knight.IDLE
+                next_state = self.hornet.IDLE
 
-            self.knight.state_machine.cur_state.exit()
-            self.knight.state_machine.cur_state = next_state
-            self.knight.state_machine.cur_state.enter(('DASH_END', 0))
+            self.hornet.state_machine.cur_state.exit()
+            self.hornet.state_machine.cur_state = next_state
+            self.hornet.state_machine.cur_state.enter(('DASH_END', 0))
 
     def draw(self):
-        if self.knight.face_dir == 1:
-            self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * dash_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
         else:
-            self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+            self.hornet.image.clip_composite_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * dash_offset[0],
                 frame_size, frame_size,
                 0, 'h',
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
 
@@ -209,25 +209,25 @@ class Dash:
 class Jump:
     global y_velocity
 
-    def __init__(self, knight):
-        self.knight = knight
+    def __init__(self, hornet):
+        self.hornet = hornet
 
     def enter(self, event):
         if i_down(event):
-            self.knight.frame = 0
-            self.knight.y_velocity = 20
+            self.hornet.frame = 0
+            self.hornet.y_velocity = 20
 
         keystate = SDL_GetKeyboardState(None)
         if keystate[SDL_SCANCODE_L] and keystate[SDL_SCANCODE_J]:
-            self.knight.dir = 0
+            self.hornet.dir = 0
         elif keystate[SDL_SCANCODE_L]:
-            self.knight.dir = 1
-            self.knight.face_dir = 1
+            self.hornet.dir = 1
+            self.hornet.face_dir = 1
         elif keystate[SDL_SCANCODE_J]:
-            self.knight.dir = -1
-            self.knight.face_dir = -1
+            self.hornet.dir = -1
+            self.hornet.face_dir = -1
         else:
-            self.knight.dir = 0
+            self.hornet.dir = 0
 
     def exit(self):
         pass
@@ -237,7 +237,7 @@ class Jump:
         min_velocity = -20.0
         velocity_range = max_velocity - min_velocity
         num_frames = jump_offset[1]
-        clamped_v = self.knight.y_velocity
+        clamped_v = self.hornet.y_velocity
         if clamped_v > max_velocity:
             clamped_v = max_velocity
         elif clamped_v < min_velocity:
@@ -246,47 +246,47 @@ class Jump:
         reversed_percentage = 1.0 - percentage
         target_frame = int(reversed_percentage * (num_frames - 1))
 
-        self.knight.frame = target_frame
-        self.knight.x += self.knight.dir * x_velocity
-        self.knight.y += self.knight.y_velocity
-        self.knight.y_velocity -= self.knight.gravity
+        self.hornet.frame = target_frame
+        self.hornet.x += self.hornet.dir * x_velocity
+        self.hornet.y += self.hornet.y_velocity
+        self.hornet.y_velocity -= self.hornet.gravity
 
-        if self.knight.y <= ground:
-            self.knight.y = ground
+        if self.hornet.y <= ground:
+            self.hornet.y = ground
 
             keystate = SDL_GetKeyboardState(None)
             if keystate[SDL_SCANCODE_L]:
-                self.knight.dir = 1
-                self.knight.face_dir = 1
-                next_state = self.knight.RUN
+                self.hornet.dir = 1
+                self.hornet.face_dir = 1
+                next_state = self.hornet.RUN
             elif keystate[SDL_SCANCODE_J]:
-                self.knight.dir = -1
-                self.knight.face_dir = -1
-                next_state = self.knight.RUN
+                self.hornet.dir = -1
+                self.hornet.face_dir = -1
+                next_state = self.hornet.RUN
             else:
-                self.knight.dir = 0
-                next_state = self.knight.IDLE
+                self.hornet.dir = 0
+                next_state = self.hornet.IDLE
 
-            self.knight.state_machine.cur_state.exit()
-            self.knight.state_machine.cur_state = next_state
-            self.knight.state_machine.cur_state.enter(('LAND', 0))
+            self.hornet.state_machine.cur_state.exit()
+            self.hornet.state_machine.cur_state = next_state
+            self.hornet.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
-        if self.knight.face_dir == 1:
-            self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * jump_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
         else:
-            self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+            self.hornet.image.clip_composite_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * jump_offset[0],
                 frame_size, frame_size,
                 0, 'h',
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
 
@@ -294,39 +294,39 @@ class Jump:
         return None
 
 class Run:
-    def __init__(self, knight):
-        self.knight = knight
+    def __init__(self, hornet):
+        self.hornet = hornet
 
     def enter(self, event):
-        self.knight.frame = 0
+        self.hornet.frame = 0
         if l_down(event) or j_up(event):
-            self.knight.dir = self.knight.face_dir = 1
+            self.hornet.dir = self.hornet.face_dir = 1
         elif j_down(event) or l_up(event):
-            self.knight.dir = self.knight.face_dir = -1
+            self.hornet.dir = self.hornet.face_dir = -1
 
     def exit(self):
         pass
 
     def do(self):
-        self.knight.frame = (self.knight.frame + 1) % run_offset[1]
-        self.knight.x += self.knight.dir * x_velocity
+        self.hornet.frame = (self.hornet.frame + 1) % run_offset[1]
+        self.hornet.x += self.hornet.dir * x_velocity
 
     def draw(self):
-        if self.knight.face_dir == 1:
-            self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
         else:
-            self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+            self.hornet.image.clip_composite_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
                 0, 'h',
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
 
@@ -335,38 +335,38 @@ class Run:
 
 
 class Idle:
-    def __init__(self, knight):
-        self.knight = knight
+    def __init__(self, hornet):
+        self.hornet = hornet
 
     def enter(self, event):
-        self.knight.frame = 0
-        self.knight.dir = 0
-        self.knight.idle_start_time = get_time()
+        self.hornet.frame = 0
+        self.hornet.dir = 0
+        self.hornet.idle_start_time = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        if get_time() - self.knight.idle_start_time >= 0.2:
-            self.knight.frame = (self.knight.frame + 1) % idle_offset[1]
-            self.knight.idle_start_time = get_time()
+        if get_time() - self.hornet.idle_start_time >= 0.2:
+            self.hornet.frame = (self.hornet.frame + 1) % idle_offset[1]
+            self.hornet.idle_start_time = get_time()
 
     def draw(self):
-        if self.knight.face_dir == 1:
-            self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
         else:
-            self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+            self.hornet.image.clip_composite_draw(
+                self.hornet.frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
                 0, 'h',
-                self.knight.x, self.knight.y,
+                self.hornet.x, self.hornet.y,
                 frame_size, frame_size
             )
 
