@@ -1,5 +1,6 @@
 from pico2d import load_image, get_time, draw_rectangle
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_z, SDLK_x
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_z, SDLK_x, \
+    SDL_GetKeyboardState, SDL_SCANCODE_RIGHT, SDL_SCANCODE_LEFT
 from state_machine import StateMachine
 
 # 설정 변수
@@ -20,35 +21,43 @@ dash_offset = [5, 7]
 attack_offset = [4, 8]
 attack_effect_offset = [13, 13]
 
+
 # 이벤트 체크 함수
 
 def right_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RIGHT
 
+
 def right_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_RIGHT
+
 
 def left_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_LEFT
 
+
 def left_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
+
 
 def space_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
+
 def z_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_z
 
+
 def x_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_x
+
 
 # 상태 클래스
 
 class Attack:
     def __init__(self, knight):
         self.knight = knight
-        self.attack_box_offset = (-51, -47, 37, 50) # 공격 히트박스 크기
+        self.attack_box_offset = (-51, -47, 37, 50)  # 공격 히트박스 크기
 
     def enter(self, event):
         self.knight.frame = 0
@@ -58,9 +67,20 @@ class Attack:
 
     def do(self):
         self.knight.frame = (self.knight.frame + 1) % attack_offset[1]
+        # 공격 애니메이션 종료 시점
         if self.knight.frame == 7:
+            keystate = SDL_GetKeyboardState(None)
+
             if self.knight.y > ground:
                 next_state = self.knight.JUMP
+            elif keystate[SDL_SCANCODE_RIGHT]:
+                self.knight.dir = 1
+                self.knight.face_dir = 1
+                next_state = self.knight.RUN
+            elif keystate[SDL_SCANCODE_LEFT]:
+                self.knight.dir = -1
+                self.knight.face_dir = -1
+                next_state = self.knight.RUN
             else:
                 next_state = self.knight.IDLE
 
@@ -161,16 +181,26 @@ class Dash:
             hit_wall = True
         traveled_distance = abs(self.knight.x - self.start_x)
 
+        # 대시 종료 조건
         if traveled_distance >= self.dash_distance or hit_wall:
+            keystate = SDL_GetKeyboardState(None)
+
             if self.knight.y > ground:
                 next_state = self.knight.JUMP
+            elif keystate[SDL_SCANCODE_RIGHT]:
+                self.knight.dir = 1
+                self.knight.face_dir = 1
+                next_state = self.knight.RUN
+            elif keystate[SDL_SCANCODE_LEFT]:
+                self.knight.dir = -1
+                self.knight.face_dir = -1
+                next_state = self.knight.RUN
             else:
                 next_state = self.knight.IDLE
 
             self.knight.state_machine.cur_state.exit()
             self.knight.state_machine.cur_state = next_state
             self.knight.state_machine.cur_state.enter(('DASH_END', 0))
-
 
     def draw(self):
         if self.knight.face_dir == 1:
@@ -193,6 +223,7 @@ class Dash:
 
     def get_attack_box(self):
         return None
+
 
 class Jump:
     global y_velocity
@@ -231,13 +262,23 @@ class Jump:
         self.knight.y += self.knight.y_velocity
         self.knight.y_velocity -= self.knight.gravity
 
+        # 착지 처리
         if self.knight.y <= ground:
             self.knight.y = ground
 
-            if self.knight.dir == 0:
-                next_state = self.knight.IDLE
-            else:
+            keystate = SDL_GetKeyboardState(None)
+
+            if keystate[SDL_SCANCODE_RIGHT]:
+                self.knight.dir = 1
+                self.knight.face_dir = 1
                 next_state = self.knight.RUN
+            elif keystate[SDL_SCANCODE_LEFT]:
+                self.knight.dir = -1
+                self.knight.face_dir = -1
+                next_state = self.knight.RUN
+            else:
+                self.knight.dir = 0
+                next_state = self.knight.IDLE
 
             self.knight.state_machine.cur_state.exit()
             self.knight.state_machine.cur_state = next_state
@@ -264,6 +305,7 @@ class Jump:
 
     def get_attack_box(self):
         return None
+
 
 class Run:
     def __init__(self, knight):
@@ -305,6 +347,7 @@ class Run:
     def get_attack_box(self):
         return None
 
+
 class Idle:
     def __init__(self, knight):
         self.knight = knight
@@ -344,16 +387,17 @@ class Idle:
     def get_attack_box(self):
         return None
 
+
 class Knight:
     def __init__(self):
-        self.x = canvas_width // 2 # 임시 시작 위치
+        self.x = canvas_width // 2  # 임시 시작 위치
         self.y = ground
         self.y_velocity = 0
         self.gravity = 0.7
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
-        self.body_box_offset = (-30, 0, 30, 100) # 히트박스 크기
+        self.body_box_offset = (-30, 0, 30, 100)  # 히트박스 크기
         self.image = load_image('knight.png')
 
         self.IDLE = Idle(self)
