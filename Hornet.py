@@ -8,18 +8,8 @@ from state_machine import StateMachine
 canvas_width = 1280
 canvas_height = 720
 
-# 기존 Knight용 설정 (다른 상태들이 아직 사용하므로 유지)
-frame_size = 128
 ground = 90
 x_velocity = 5
-
-# 오프셋 설정 (Run, Jump 등은 아직 기존 것 사용)
-run_offset = [1, 9]
-jump_offset = [10, 12]
-dash_offset = [5, 7]
-attack_offset = [4, 8]
-attack_effect_offset = [13, 13]
-
 
 def l_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_l
