@@ -311,7 +311,17 @@ class Jump:
             )
 
     def get_attack_box(self):
-        return None
+        width = 54
+        height = 114
+
+        x_offset = 14 * self.hornet.face_dir * -1
+
+        left = self.hornet.x + x_offset - width // 1.5
+        right = self.hornet.x + x_offset + width // 1.5
+        bottom = self.hornet.y - height // 1.5
+        top = self.hornet.y + height // 1.5
+
+        return (left, bottom, right, top)
 
 
 class Run:
@@ -360,7 +370,17 @@ class Run:
             )
 
     def get_attack_box(self):
-        return None
+        width = 50
+        height = 95
+
+        x_offset = 3 * self.hornet.face_dir
+
+        left = self.hornet.x + x_offset - width // 1.5
+        right = self.hornet.x + x_offset + width // 1.5
+        bottom = self.hornet.y - height // 1.5
+        top = self.hornet.y + height // 1.5
+
+        return (left, bottom, right, top)
 
 
 class Idle:
@@ -408,7 +428,17 @@ class Idle:
             )
 
     def get_attack_box(self):
-        return None
+        width = 55
+        height = 107
+
+        x_offset = 6 * self.hornet.face_dir * -1
+
+        left = self.hornet.x + x_offset - width // 1.5
+        right = self.hornet.x + x_offset + width // 1.5
+        bottom = self.hornet.y - height // 1.5
+        top = self.hornet.y + height // 1.5
+
+        return (left, bottom, right, top)
 
 
 class Hornet:
