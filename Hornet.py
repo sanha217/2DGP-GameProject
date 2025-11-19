@@ -193,10 +193,17 @@ class Dash:
 
 
 class Jump:
-    global y_velocity
-
     def __init__(self, hornet):
         self.hornet = hornet
+        self.width = 188
+        self.height = 229
+        self.start_x = 3
+        self.start_y_top = 1626
+        self.gap = 3
+        self.frame_count = 9
+
+        self.display_width = self.width // 1.5
+        self.display_height = self.height // 1.5
 
     def enter(self, event):
         if i_down(event):
@@ -222,17 +229,19 @@ class Jump:
         max_velocity = 20.0
         min_velocity = -20.0
         velocity_range = max_velocity - min_velocity
-        num_frames = jump_offset[1]
+
         clamped_v = self.hornet.y_velocity
         if clamped_v > max_velocity:
             clamped_v = max_velocity
         elif clamped_v < min_velocity:
             clamped_v = min_velocity
+
         percentage = (clamped_v - min_velocity) / velocity_range
         reversed_percentage = 1.0 - percentage
-        target_frame = int(reversed_percentage * (num_frames - 1))
 
+        target_frame = int(reversed_percentage * (self.frame_count - 1))
         self.hornet.frame = target_frame
+
         self.hornet.x += self.hornet.dir * x_velocity
         self.hornet.y += self.hornet.y_velocity
         self.hornet.y_velocity -= self.hornet.gravity
@@ -258,23 +267,21 @@ class Jump:
             self.hornet.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
-        # 아직 수정되지 않음
+        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        bottom = self.hornet.image_height - self.start_y_top - self.height
+
         if self.hornet.face_dir == 1:
-            self.hornet.image.clip_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * jump_offset[0],
-                frame_size, frame_size,
-                self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-        else:
             self.hornet.image.clip_composite_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * jump_offset[0],
-                frame_size, frame_size,
+                left, bottom, self.width, self.height,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
+                self.display_width, self.display_height
+            )
+        else:
+            self.hornet.image.clip_draw(
+                left, bottom, self.width, self.height,
+                self.hornet.x, self.hornet.y,
+                self.display_width, self.display_height
             )
 
     def get_attack_box(self):
