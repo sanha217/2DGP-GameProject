@@ -8,8 +8,16 @@ from state_machine import StateMachine
 canvas_width = 1280
 canvas_height = 720
 
+frame_size = 128
 ground = 90
 x_velocity = 5
+
+run_offset = [1, 9]
+jump_offset = [10, 12]
+dash_offset = [5, 7]
+attack_offset = [4, 8]
+attack_effect_offset = [13, 13]
+
 
 def l_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_l

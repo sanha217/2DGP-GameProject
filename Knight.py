@@ -298,7 +298,7 @@ class Jump:
             )
 
     def get_attack_box(self):
-        return None
+        return self.knight.get_body_box()
 
 class Run:
     def __init__(self, knight):
@@ -338,7 +338,7 @@ class Run:
             )
 
     def get_attack_box(self):
-        return None
+        return self.knight.get_body_box()
 
 
 class Idle:
@@ -378,7 +378,7 @@ class Idle:
             )
 
     def get_attack_box(self):
-        return None
+        return self.knight.get_body_box()
 
 
 class Knight:
@@ -390,7 +390,7 @@ class Knight:
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
-        self.body_box_offset = (-30, 0, 30, 100)
+        self.body_box_offset = (-27, -57, 29, 58)
         self.image = load_image('knight.png')
 
         self.IDLE = Idle(self)
