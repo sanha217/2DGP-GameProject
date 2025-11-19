@@ -232,13 +232,22 @@ class Jump:
         self.knight = knight
 
     def enter(self, event):
-        self.knight.frame = 0
         if space_down(event):
+            self.knight.frame = 0
             self.knight.y_velocity = 20
-        elif right_down(event) or left_up(event):
-            self.knight.dir = self.knight.face_dir = 1
-        elif left_down(event) or right_up(event):
-            self.knight.dir = self.knight.face_dir = -1
+
+        keystate = SDL_GetKeyboardState(None)
+
+        if keystate[SDL_SCANCODE_RIGHT] and keystate[SDL_SCANCODE_LEFT]:
+            self.knight.dir = 0
+        elif keystate[SDL_SCANCODE_RIGHT]:
+            self.knight.dir = 1
+            self.knight.face_dir = 1
+        elif keystate[SDL_SCANCODE_LEFT]:
+            self.knight.dir = -1
+            self.knight.face_dir = -1
+        else:
+            self.knight.dir = 0
 
     def exit(self):
         pass
@@ -262,7 +271,6 @@ class Jump:
         self.knight.y += self.knight.y_velocity
         self.knight.y_velocity -= self.knight.gravity
 
-        # 착지 처리
         if self.knight.y <= ground:
             self.knight.y = ground
 
@@ -305,7 +313,6 @@ class Jump:
 
     def get_attack_box(self):
         return None
-
 
 class Run:
     def __init__(self, knight):
