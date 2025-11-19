@@ -7,13 +7,13 @@ from state_machine import StateMachine
 
 canvas_width = 1280
 canvas_height = 720
-image_size = 2048
-frame_size = 128
 
+# 기존 Knight용 설정 (다른 상태들이 아직 사용하므로 유지)
+frame_size = 128
 ground = 90
 x_velocity = 5
 
-idle_offset = [9, 7]
+# 오프셋 설정 (Run, Jump 등은 아직 기존 것 사용)
 run_offset = [1, 9]
 jump_offset = [10, 12]
 dash_offset = [5, 7]
@@ -83,37 +83,22 @@ class Attack:
             self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
+        # 아직 수정되지 않음 (Knight 기준)
         if self.hornet.face_dir == 1:
             self.hornet.image.clip_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * attack_offset[0],
+                2048 - frame_size * attack_offset[0],  # 임시로 2048 하드코딩 (기존 로직 유지)
                 frame_size, frame_size,
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-            self.hornet.image.clip_composite_draw(
-                attack_effect_offset[1] * frame_size,
-                image_size - frame_size * attack_effect_offset[0],
-                frame_size, frame_size,
-                0, 'v',
-                self.hornet.x + (60 * self.hornet.face_dir), self.hornet.y - 20,
                 frame_size, frame_size
             )
         else:
             self.hornet.image.clip_composite_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * attack_offset[0],
+                2048 - frame_size * attack_offset[0],
                 frame_size, frame_size,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-            self.hornet.image.clip_composite_draw(
-                attack_effect_offset[1] * frame_size,
-                image_size - frame_size * attack_effect_offset[0],
-                frame_size, frame_size,
-                0, 'vh',
-                self.hornet.x + (60 * self.hornet.face_dir), self.hornet.y - 20,
                 frame_size, frame_size
             )
 
@@ -184,10 +169,11 @@ class Dash:
             self.hornet.state_machine.cur_state.enter(('DASH_END', 0))
 
     def draw(self):
+        # 아직 수정되지 않음
         if self.hornet.face_dir == 1:
             self.hornet.image.clip_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * dash_offset[0],
+                2048 - frame_size * dash_offset[0],
                 frame_size, frame_size,
                 self.hornet.x, self.hornet.y,
                 frame_size, frame_size
@@ -195,7 +181,7 @@ class Dash:
         else:
             self.hornet.image.clip_composite_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * dash_offset[0],
+                2048 - frame_size * dash_offset[0],
                 frame_size, frame_size,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
@@ -272,10 +258,11 @@ class Jump:
             self.hornet.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
+        # 아직 수정되지 않음
         if self.hornet.face_dir == 1:
             self.hornet.image.clip_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * jump_offset[0],
+                2048 - frame_size * jump_offset[0],
                 frame_size, frame_size,
                 self.hornet.x, self.hornet.y,
                 frame_size, frame_size
@@ -283,7 +270,7 @@ class Jump:
         else:
             self.hornet.image.clip_composite_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * jump_offset[0],
+                2048 - frame_size * jump_offset[0],
                 frame_size, frame_size,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
@@ -292,6 +279,7 @@ class Jump:
 
     def get_attack_box(self):
         return None
+
 
 class Run:
     def __init__(self, hornet):
@@ -312,10 +300,11 @@ class Run:
         self.hornet.x += self.hornet.dir * x_velocity
 
     def draw(self):
+        # 아직 수정되지 않음
         if self.hornet.face_dir == 1:
             self.hornet.image.clip_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * run_offset[0],
+                2048 - frame_size * run_offset[0],
                 frame_size, frame_size,
                 self.hornet.x, self.hornet.y,
                 frame_size, frame_size
@@ -323,7 +312,7 @@ class Run:
         else:
             self.hornet.image.clip_composite_draw(
                 self.hornet.frame * frame_size,
-                image_size - frame_size * run_offset[0],
+                2048 - frame_size * run_offset[0],
                 frame_size, frame_size,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
@@ -337,6 +326,15 @@ class Run:
 class Idle:
     def __init__(self, hornet):
         self.hornet = hornet
+        self.width = 184
+        self.height = 216
+        self.start_x = 3
+        self.start_y_top = 953
+        self.gap = 3
+        self.frame_count = 6
+
+        self.display_width = self.width // 1.5
+        self.display_height = self.height // 1.5
 
     def enter(self, event):
         self.hornet.frame = 0
@@ -348,26 +346,25 @@ class Idle:
 
     def do(self):
         if get_time() - self.hornet.idle_start_time >= 0.2:
-            self.hornet.frame = (self.hornet.frame + 1) % idle_offset[1]
+            self.hornet.frame = (self.hornet.frame + 1) % self.frame_count
             self.hornet.idle_start_time = get_time()
 
     def draw(self):
+        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        bottom = self.hornet.image_height - self.start_y_top - self.height
+
         if self.hornet.face_dir == 1:
-            self.hornet.image.clip_draw(
-                self.hornet.frame * frame_size,
-                image_size - frame_size * idle_offset[0],
-                frame_size, frame_size,
-                self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-        else:
             self.hornet.image.clip_composite_draw(
-                self.hornet.frame * frame_size,
-                image_size - frame_size * idle_offset[0],
-                frame_size, frame_size,
+                left, bottom, self.width, self.height,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
+                self.display_width, self.display_height
+            )
+        else:
+            self.hornet.image.clip_draw(
+                left, bottom, self.width, self.height,
+                self.hornet.x, self.hornet.y,
+                self.display_width, self.display_height
             )
 
     def get_attack_box(self):
@@ -377,14 +374,17 @@ class Idle:
 class Hornet:
     def __init__(self):
         self.x = canvas_width // 2
-        self.y = ground
+        self.y = ground + 20
         self.y_velocity = 0
         self.gravity = 0.7
         self.frame = 0
         self.dir = 0
         self.face_dir = 1
         self.body_box_offset = (-30, 0, 30, 100)
-        self.image = load_image('knight.png')
+
+        self.image = load_image('hornet.png')
+        self.image_width = 2392
+        self.image_height = 13086
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
