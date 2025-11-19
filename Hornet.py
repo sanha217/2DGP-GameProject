@@ -1,11 +1,9 @@
 from pico2d import load_image, get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
-    SDLK_a, SDLK_d, SDLK_w, SDLK_f, SDLK_g, \
-    SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_W
+    SDLK_j, SDLK_l, SDLK_i, SDLK_SEMICOLON, SDLK_QUOTE, \
+    SDL_SCANCODE_J, SDL_SCANCODE_L, SDL_SCANCODE_I
 
 from state_machine import StateMachine
-
-# 설정 변수
 
 canvas_width = 1280
 canvas_height = 720
@@ -15,7 +13,6 @@ frame_size = 128
 ground = 90
 x_velocity = 5
 
-# [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
 run_offset = [1, 9]
 jump_offset = [10, 12]
@@ -24,37 +21,33 @@ attack_offset = [4, 8]
 attack_effect_offset = [13, 13]
 
 
-# 이벤트 체크 함수 (키 변경 적용: A, D, W, F, G)
-
-def d_down(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_d
+def l_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_l
 
 
-def d_up(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_d
+def l_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_l
 
 
-def a_down(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
+def j_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_j
 
 
-def a_up(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_a
+def j_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_j
 
 
-def w_down(e):  # 점프
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_w
+def i_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_i
 
 
-def f_down(e):  # 대시
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_f
+def semicolon_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SEMICOLON
 
 
-def g_down(e):  # 공격
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_g
+def quote_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_QUOTE
 
-
-# 상태 클래스
 
 class Attack:
     def __init__(self, knight):
@@ -74,11 +67,11 @@ class Attack:
 
             if self.knight.y > ground:
                 next_state = self.knight.JUMP
-            elif keystate[SDL_SCANCODE_D]:
+            elif keystate[SDL_SCANCODE_L]:
                 self.knight.dir = 1
                 self.knight.face_dir = 1
                 next_state = self.knight.RUN
-            elif keystate[SDL_SCANCODE_A]:
+            elif keystate[SDL_SCANCODE_J]:
                 self.knight.dir = -1
                 self.knight.face_dir = -1
                 next_state = self.knight.RUN
@@ -175,11 +168,11 @@ class Dash:
 
             if self.knight.y > ground:
                 next_state = self.knight.JUMP
-            elif keystate[SDL_SCANCODE_D]:
+            elif keystate[SDL_SCANCODE_L]:
                 self.knight.dir = 1
                 self.knight.face_dir = 1
                 next_state = self.knight.RUN
-            elif keystate[SDL_SCANCODE_A]:
+            elif keystate[SDL_SCANCODE_J]:
                 self.knight.dir = -1
                 self.knight.face_dir = -1
                 next_state = self.knight.RUN
@@ -220,17 +213,17 @@ class Jump:
         self.knight = knight
 
     def enter(self, event):
-        if w_down(event):
+        if i_down(event):
             self.knight.frame = 0
             self.knight.y_velocity = 20
 
         keystate = SDL_GetKeyboardState(None)
-        if keystate[SDL_SCANCODE_D] and keystate[SDL_SCANCODE_A]:
+        if keystate[SDL_SCANCODE_L] and keystate[SDL_SCANCODE_J]:
             self.knight.dir = 0
-        elif keystate[SDL_SCANCODE_D]:
+        elif keystate[SDL_SCANCODE_L]:
             self.knight.dir = 1
             self.knight.face_dir = 1
-        elif keystate[SDL_SCANCODE_A]:
+        elif keystate[SDL_SCANCODE_J]:
             self.knight.dir = -1
             self.knight.face_dir = -1
         else:
@@ -262,11 +255,11 @@ class Jump:
             self.knight.y = ground
 
             keystate = SDL_GetKeyboardState(None)
-            if keystate[SDL_SCANCODE_D]:
+            if keystate[SDL_SCANCODE_L]:
                 self.knight.dir = 1
                 self.knight.face_dir = 1
                 next_state = self.knight.RUN
-            elif keystate[SDL_SCANCODE_A]:
+            elif keystate[SDL_SCANCODE_J]:
                 self.knight.dir = -1
                 self.knight.face_dir = -1
                 next_state = self.knight.RUN
@@ -306,9 +299,9 @@ class Run:
 
     def enter(self, event):
         self.knight.frame = 0
-        if d_down(event) or a_up(event):
+        if l_down(event) or j_up(event):
             self.knight.dir = self.knight.face_dir = 1
-        elif a_down(event) or d_up(event):
+        elif j_down(event) or l_up(event):
             self.knight.dir = self.knight.face_dir = -1
 
     def exit(self):
@@ -381,7 +374,7 @@ class Idle:
         return None
 
 
-class Knight:
+class Hornet:
     def __init__(self):
         self.x = canvas_width // 2
         self.y = ground
@@ -402,30 +395,30 @@ class Knight:
             self.IDLE,
             {
                 self.IDLE: {
-                    d_down: self.RUN,
-                    a_down: self.RUN,
-                    d_up: self.RUN,
-                    a_up: self.RUN,
-                    w_down: self.JUMP,
-                    f_down: self.DASH,
-                    g_down: self.ATTACK
+                    l_down: self.RUN,
+                    j_down: self.RUN,
+                    l_up: self.RUN,
+                    j_up: self.RUN,
+                    i_down: self.JUMP,
+                    semicolon_down: self.DASH,
+                    quote_down: self.ATTACK
                 },
                 self.RUN: {
-                    d_down: self.IDLE,
-                    a_down: self.IDLE,
-                    d_up: self.IDLE,
-                    a_up: self.IDLE,
-                    w_down: self.JUMP,
-                    f_down: self.DASH,
-                    g_down: self.ATTACK
+                    l_down: self.IDLE,
+                    j_down: self.IDLE,
+                    l_up: self.IDLE,
+                    j_up: self.IDLE,
+                    i_down: self.JUMP,
+                    semicolon_down: self.DASH,
+                    quote_down: self.ATTACK
                 },
                 self.JUMP: {
-                    d_down: self.JUMP,
-                    a_down: self.JUMP,
-                    d_up: self.JUMP,
-                    a_up: self.JUMP,
-                    f_down: self.DASH,
-                    g_down: self.ATTACK
+                    l_down: self.JUMP,
+                    j_down: self.JUMP,
+                    l_up: self.JUMP,
+                    j_up: self.JUMP,
+                    semicolon_down: self.DASH,
+                    quote_down: self.ATTACK
                 },
                 self.DASH: {
                 },
