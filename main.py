@@ -1,6 +1,7 @@
 from pico2d import *
 from Background import Background
 from Knight import Knight
+from Hornet import Hornet
 
 def handle_events():
     global playing
@@ -13,10 +14,12 @@ def handle_events():
             playing = False
         else:
             knight.handle_state_event(event)
+            hornet.handle_state_event(event)
 
 def reset_world():
     global world
     global knight
+    global hornet
 
     world = []
 
@@ -25,7 +28,9 @@ def reset_world():
 
     knight = Knight()
     world.append(knight)
-    # 추가하기
+
+    hornet = Hornet()
+    world.append(hornet)
 
 def update_world():
     for o in world:
