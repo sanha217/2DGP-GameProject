@@ -54,52 +54,68 @@ class Attack:
         self.hornet = hornet
         self.attack_box_offset = (-51, -47, 37, 50)
 
+        self.frame_coords = [
+            (1808, 22, 358, 301),
+            (3, 326, 358, 301)
+        ]
+        self.frame_count = len(self.frame_coords)
+
+        self.timer = 0
+
     def enter(self, event):
         self.hornet.frame = 0
+        self.timer = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        self.hornet.frame = (self.hornet.frame + 1) % attack_offset[1]
-        if self.hornet.frame == 7:
-            keystate = SDL_GetKeyboardState(None)
+        if get_time() - self.timer >= 0.1:
+            self.hornet.frame += 1
+            self.timer = get_time()
 
-            if self.hornet.y > ground:
-                next_state = self.hornet.JUMP
-            elif keystate[SDL_SCANCODE_L]:
-                self.hornet.dir = 1
-                self.hornet.face_dir = 1
-                next_state = self.hornet.RUN
-            elif keystate[SDL_SCANCODE_J]:
-                self.hornet.dir = -1
-                self.hornet.face_dir = -1
-                next_state = self.hornet.RUN
-            else:
-                next_state = self.hornet.IDLE
+            if self.hornet.frame >= self.frame_count:
+                self.hornet.frame = self.frame_count - 1
 
-            self.hornet.state_machine.cur_state.exit()
-            self.hornet.state_machine.cur_state = next_state
-            self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
+                keystate = SDL_GetKeyboardState(None)
+                if self.hornet.y > ground:
+                    next_state = self.hornet.JUMP
+                elif keystate[SDL_SCANCODE_L]:
+                    self.hornet.dir = 1
+                    self.hornet.face_dir = 1
+                    next_state = self.hornet.RUN
+                elif keystate[SDL_SCANCODE_J]:
+                    self.hornet.dir = -1
+                    self.hornet.face_dir = -1
+                    next_state = self.hornet.RUN
+                else:
+                    next_state = self.hornet.IDLE
+
+                self.hornet.state_machine.cur_state.exit()
+                self.hornet.state_machine.cur_state = next_state
+                self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
-        # 아직 수정되지 않음 (Knight 기준)
+        x, y_top, w, h = self.frame_coords[self.hornet.frame]
+
+        display_w = w // 1.5
+        display_h = h // 1.5
+
+        # 좌표 변환
+        bottom = self.hornet.image_height - y_top - h
+
         if self.hornet.face_dir == 1:
-            self.hornet.image.clip_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * attack_offset[0],  # 임시로 2048 하드코딩 (기존 로직 유지)
-                frame_size, frame_size,
-                self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-        else:
             self.hornet.image.clip_composite_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * attack_offset[0],
-                frame_size, frame_size,
+                x, bottom, w, h,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
+                display_w, display_h
+            )
+        else:
+            self.hornet.image.clip_draw(
+                x, bottom, w, h,
+                self.hornet.x, self.hornet.y,
+                display_w, display_h
             )
 
     def get_attack_box(self):
@@ -111,7 +127,6 @@ class Attack:
             return (attack_x + l_offset, attack_y + b_offset, attack_x + r_offset, attack_y + t_offset)
         else:
             return (attack_x - r_offset, attack_y + b_offset, attack_x - l_offset, attack_y + t_offset)
-
 
 class Dash:
     def __init__(self, hornet):
@@ -181,8 +196,8 @@ class Dash:
     def draw(self):
         x, y_top, w, h = self.frame_coords[self.hornet.frame]
 
-        display_w = w // 2
-        display_h = h // 2
+        display_w = w // 1.5
+        display_h = h // 1.5
 
         bottom = self.hornet.image_height - y_top - h
 
