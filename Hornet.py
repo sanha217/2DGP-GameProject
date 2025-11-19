@@ -284,6 +284,15 @@ class Jump:
 class Run:
     def __init__(self, hornet):
         self.hornet = hornet
+        self.width = 159
+        self.height = 191
+        self.start_x = 3
+        self.start_y_top = 1191
+        self.gap = 3
+        self.frame_count = 8
+
+        self.display_width = self.width // 1.5
+        self.display_height = self.height // 1.5
 
     def enter(self, event):
         self.hornet.frame = 0
@@ -296,27 +305,25 @@ class Run:
         pass
 
     def do(self):
-        self.hornet.frame = (self.hornet.frame + 1) % run_offset[1]
+        self.hornet.frame = (self.hornet.frame + 1) % self.frame_count
         self.hornet.x += self.hornet.dir * x_velocity
 
     def draw(self):
-        # 아직 수정되지 않음
+        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        bottom = self.hornet.image_height - self.start_y_top - self.height
+
         if self.hornet.face_dir == 1:
-            self.hornet.image.clip_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * run_offset[0],
-                frame_size, frame_size,
-                self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-        else:
             self.hornet.image.clip_composite_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * run_offset[0],
-                frame_size, frame_size,
+                left, bottom, self.width, self.height,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
+                self.display_width, self.display_height
+            )
+        else:
+            self.hornet.image.clip_draw(
+                left, bottom, self.width, self.height,
+                self.hornet.x, self.hornet.y,
+                self.display_width, self.display_height
             )
 
     def get_attack_box(self):
@@ -374,7 +381,7 @@ class Idle:
 class Hornet:
     def __init__(self):
         self.x = canvas_width // 2
-        self.y = ground + 20
+        self.y = ground + 10
         self.y_velocity = 0
         self.gravity = 0.7
         self.frame = 0
