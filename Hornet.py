@@ -119,6 +119,12 @@ class Dash:
         self.dash_distance = frame_size * 3
         self.dash_speed = 25
 
+        self.frame_coords = [
+            (3, 2779, 255, 137),
+            (261, 2779, 255, 137)
+        ]
+        self.frame_count = len(self.frame_coords)
+
     def enter(self, event):
         self.hornet.frame = 0
         self.hornet.dir = self.hornet.face_dir
@@ -128,22 +134,26 @@ class Dash:
         self.hornet.dir = 0
 
     def do(self):
-        total_frames = dash_offset[1]
+        total_frames = self.frame_count
         total_distance = self.dash_distance
         traveled_distance = abs(self.hornet.x - self.start_x)
 
         percentage = 1.0 if total_distance == 0 else traveled_distance / total_distance
         self.hornet.frame = int(percentage * total_frames)
+
         if self.hornet.frame >= total_frames:
             self.hornet.frame = total_frames - 1
 
+        current_w = self.frame_coords[self.hornet.frame][2]
+        display_w = current_w // 2
+
         self.hornet.x += self.hornet.dir * self.dash_speed
-        self.hornet.x = max(frame_size // 2, min(self.hornet.x, canvas_width - frame_size // 2))
+        self.hornet.x = max(display_w // 2, min(self.hornet.x, canvas_width - display_w // 2))
 
         hit_wall = False
-        if self.hornet.dir == 1 and self.hornet.x == canvas_width - frame_size // 2:
+        if self.hornet.dir == 1 and self.hornet.x == canvas_width - display_w // 2:
             hit_wall = True
-        elif self.hornet.dir == -1 and self.hornet.x == frame_size // 2:
+        elif self.hornet.dir == -1 and self.hornet.x == display_w // 2:
             hit_wall = True
 
         traveled_distance = abs(self.hornet.x - self.start_x)
@@ -169,28 +179,29 @@ class Dash:
             self.hornet.state_machine.cur_state.enter(('DASH_END', 0))
 
     def draw(self):
-        # 아직 수정되지 않음
+        x, y_top, w, h = self.frame_coords[self.hornet.frame]
+
+        display_w = w // 2
+        display_h = h // 2
+
+        bottom = self.hornet.image_height - y_top - h
+
         if self.hornet.face_dir == 1:
-            self.hornet.image.clip_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * dash_offset[0],
-                frame_size, frame_size,
-                self.hornet.x, self.hornet.y,
-                frame_size, frame_size
-            )
-        else:
             self.hornet.image.clip_composite_draw(
-                self.hornet.frame * frame_size,
-                2048 - frame_size * dash_offset[0],
-                frame_size, frame_size,
+                x, bottom, w, h,
                 0, 'h',
                 self.hornet.x, self.hornet.y,
-                frame_size, frame_size
+                display_w, display_h
+            )
+        else:
+            self.hornet.image.clip_draw(
+                x, bottom, w, h,
+                self.hornet.x, self.hornet.y,
+                display_w, display_h
             )
 
     def get_attack_box(self):
         return None
-
 
 class Jump:
     def __init__(self, hornet):
