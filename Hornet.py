@@ -579,3 +579,31 @@ class Hornet:
         if hasattr(self.state_machine.cur_state, 'get_attack_box'):
             return self.state_machine.cur_state.get_attack_box()
         return None
+
+    def handle_collision(self, group, other):
+        if group == 'hornet:knight':
+            if self.state_machine.cur_state == self.ATTACK:
+                if not self.state_machine.cur_state.has_attacked:
+                    if self.collide_attack_box(other):
+                        other.hp -= 1
+                        print(f"Knight Hit! HP: {other.hp}")
+                        self.state_machine.cur_state.has_attacked = True
+            return
+
+        if group == 'knight:hornet':
+            pass
+
+    def collide_attack_box(self, other):
+        attack_box = self.get_attack_box()
+        if not attack_box: return False
+
+        body_box = other.get_body_box()
+
+        left_a, bottom_a, right_a, top_a = attack_box
+        left_b, bottom_b, right_b, top_b = body_box
+
+        if left_a > right_b: return False
+        if right_a < left_b: return False
+        if top_a < bottom_b: return False
+        if bottom_a > top_b: return False
+        return True

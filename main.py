@@ -33,6 +33,7 @@ def reset_world():
     game_world.add_object(hornet, 1)
 
     game_world.add_collision_pair('knight:hornet', knight, hornet)
+    game_world.add_collision_pair('hornet:knight', hornet, knight)
 
 def update_world():
     game_world.update()
