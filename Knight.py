@@ -393,6 +393,9 @@ class Knight:
         self.body_box_offset = (-27, -57, 29, 58)
         self.image = load_image('knight.png')
 
+        self.hp = 5
+        self.hp_image = load_image('hp.png')
+
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
@@ -437,11 +440,26 @@ class Knight:
     def update(self):
         self.state_machine.update()
 
+    def draw_hp(self):
+        hp_width = 30
+        hp_height = 40
+
+        spacing = 45
+
+        for i in range(self.hp):
+            self.hp_image.draw(
+                50 + i * spacing,
+                canvas_height - 50,
+                hp_width,
+                hp_height
+            )
+
     def draw(self):
         self.state_machine.draw()
         attack_box = self.get_attack_box()
         if attack_box:
             draw_rectangle(*attack_box)
+        self.draw_hp()
 
     def handle_state_event(self, event):
         self.state_machine.handle_state_event(('INPUT', event))
