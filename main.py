@@ -3,20 +3,6 @@ from Background import Background
 from Knight import Knight
 from Hornet import Hornet
 
-def collide(a, b):
-    if a is None or b is None:
-        return False
-
-    left_a, bottom_a, right_a, top_a = a
-    left_b, bottom_b, right_b, top_b = b
-
-    if left_a > right_b: return False
-    if right_a < left_b: return False
-    if top_a < bottom_b: return False
-    if bottom_a > top_b: return False
-
-    return True
-
 def handle_events():
     global playing
 
