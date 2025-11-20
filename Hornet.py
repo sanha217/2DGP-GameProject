@@ -451,6 +451,10 @@ class Hornet:
         self.body_box_offset = (-30, 0, 30, 100)
 
         self.image = load_image('hornet.png')
+
+        self.hp = 5
+        self.hp_image = load_image('hp.png')
+
         self.image_width = 2392
         self.image_height = 13086
 
@@ -498,11 +502,25 @@ class Hornet:
     def update(self):
         self.state_machine.update()
 
+    def draw_hp(self):
+        hp_width = 30
+        hp_height = 40
+        spacing = 45
+
+        for i in range(self.hp):
+            self.hp_image.draw(
+                canvas_width - 50 - (i * spacing),
+                canvas_height - 50,
+                hp_width,
+                hp_height
+            )
+
     def draw(self):
         self.state_machine.draw()
         attack_box = self.get_attack_box()
         if attack_box:
             draw_rectangle(*attack_box)
+        self.draw_hp()
 
     def handle_state_event(self, event):
         self.state_machine.handle_state_event(('INPUT', event))
