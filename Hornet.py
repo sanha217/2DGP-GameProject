@@ -116,6 +116,23 @@ class Attack:
                 display_w, display_h
             )
 
+    def get_body_box(self):
+        box_w = 108 // 1.5
+        box_h = 162 // 1.5
+
+        x_offset = -10 * self.hornet.face_dir
+        y_offset = -24
+
+        cx = self.hornet.x + x_offset
+        cy = self.hornet.y + y_offset
+
+        left = cx - box_w // 2
+        bottom = cy - box_h // 2
+        right = cx + box_w // 2
+        top = cy + box_h // 2
+
+        return (left, bottom, right, top)
+
     def get_attack_box(self):
         l_offset, b_offset, r_offset, t_offset = self.attack_box_offset
         attack_x = self.hornet.x + (60 * self.hornet.face_dir)
@@ -213,6 +230,23 @@ class Dash:
                 display_w, display_h
             )
 
+    def get_body_box(self):
+        box_w = 113 // 1.5
+        box_h = 137 // 1.5
+
+        x_offset = -27 * self.hornet.face_dir
+        y_offset = 0
+
+        cx = self.hornet.x + x_offset
+        cy = self.hornet.y + y_offset
+
+        left = cx - box_w // 2
+        bottom = cy - box_h // 2
+        right = cx + box_w // 2
+        top = cy + box_h // 2
+
+        return (left, bottom, right, top)
+
     def get_attack_box(self):
         return None
 
@@ -308,18 +342,19 @@ class Jump:
                 self.display_width, self.display_height
             )
 
-    def get_attack_box(self):
+    def get_body_box(self):
         width = 54
         height = 114
-
         x_offset = 14 * self.hornet.face_dir * -1
 
         left = self.hornet.x + x_offset - width // 1.5
         right = self.hornet.x + x_offset + width // 1.5
         bottom = self.hornet.y - height // 1.5
         top = self.hornet.y + height // 1.5
-
         return (left, bottom, right, top)
+
+    def get_attack_box(self):
+        return None
 
 
 class Run:
@@ -367,18 +402,19 @@ class Run:
                 self.display_width, self.display_height
             )
 
-    def get_attack_box(self):
+    def get_body_box(self):
         width = 50
         height = 95
-
         x_offset = 3 * self.hornet.face_dir
 
         left = self.hornet.x + x_offset - width // 1.5
         right = self.hornet.x + x_offset + width // 1.5
         bottom = self.hornet.y - height // 1.5
         top = self.hornet.y + height // 1.5
-
         return (left, bottom, right, top)
+
+    def get_attack_box(self):
+        return None
 
 
 class Idle:
@@ -425,18 +461,19 @@ class Idle:
                 self.display_width, self.display_height
             )
 
-    def get_attack_box(self):
+    def get_body_box(self):
         width = 55
         height = 107
-
         x_offset = 6 * self.hornet.face_dir * -1
 
         left = self.hornet.x + x_offset - width // 1.5
         right = self.hornet.x + x_offset + width // 1.5
         bottom = self.hornet.y - height // 1.5
         top = self.hornet.y + height // 1.5
-
         return (left, bottom, right, top)
+
+    def get_attack_box(self):
+        return None
 
 
 class Hornet:
@@ -517,9 +554,12 @@ class Hornet:
 
     def draw(self):
         self.state_machine.draw()
+
+        body_box = self.get_body_box()
+        if body_box: draw_rectangle(*body_box)
+
         attack_box = self.get_attack_box()
-        if attack_box:
-            draw_rectangle(*attack_box)
+        if attack_box: draw_rectangle(*attack_box)
         self.draw_hp()
 
     def handle_state_event(self, event):
@@ -531,6 +571,11 @@ class Hornet:
         r = self.x + self.body_box_offset[2]
         t = self.y + self.body_box_offset[3]
         return (l, b, r, t)
+
+    def get_body_box(self):
+        if hasattr(self.state_machine.cur_state, 'get_body_box'):
+            return self.state_machine.cur_state.get_body_box()
+        return None
 
     def get_attack_box(self):
         if hasattr(self.state_machine.cur_state, 'get_attack_box'):

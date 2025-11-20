@@ -298,7 +298,7 @@ class Jump:
             )
 
     def get_attack_box(self):
-        return self.knight.get_body_box()
+        return None
 
 class Run:
     def __init__(self, knight):
@@ -338,7 +338,7 @@ class Run:
             )
 
     def get_attack_box(self):
-        return self.knight.get_body_box()
+        return None
 
 
 class Idle:
@@ -378,7 +378,7 @@ class Idle:
             )
 
     def get_attack_box(self):
-        return self.knight.get_body_box()
+        return None
 
 
 class Knight:
@@ -456,6 +456,9 @@ class Knight:
 
     def draw(self):
         self.state_machine.draw()
+        body_box = self.get_body_box()
+        if body_box:
+            draw_rectangle(*body_box)
         attack_box = self.get_attack_box()
         if attack_box:
             draw_rectangle(*attack_box)
