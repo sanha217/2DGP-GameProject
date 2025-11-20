@@ -1,4 +1,5 @@
 from pico2d import *
+import game_world
 from Background import Background
 from Knight import Knight
 from Hornet import Hornet
@@ -17,29 +18,29 @@ def handle_events():
             hornet.handle_state_event(event)
 
 def reset_world():
-    global world
     global knight
     global hornet
 
-    world = []
+    game_world.clear()
 
     bg = Background()
-    world.append(bg)
+    game_world.add_object(bg, 0)
 
     knight = Knight()
-    world.append(knight)
+    game_world.add_object(knight, 1)
 
     hornet = Hornet()
-    world.append(hornet)
+    game_world.add_object(hornet, 1)
+
+    game_world.add_collision_pair('knight:hornet', knight, hornet)
 
 def update_world():
-    for o in world:
-        o.update()
+    game_world.update()
+    game_world.handle_collisions()
 
 def render_world():
     clear_canvas()
-    for o in world:
-        o.draw()
+    game_world.render()
     update_canvas()
 
 if __name__ == '__main__':
