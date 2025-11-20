@@ -63,6 +63,7 @@ class Attack:
 
     def enter(self, event):
         self.knight.frame = 0
+        self.has_attacked = False
 
     def exit(self):
         pass
@@ -212,7 +213,6 @@ class Dash:
     def get_attack_box(self):
         return None
 
-
 class Jump:
     global y_velocity
 
@@ -340,7 +340,6 @@ class Run:
     def get_attack_box(self):
         return None
 
-
 class Idle:
     def __init__(self, knight):
         self.knight = knight
@@ -379,7 +378,6 @@ class Idle:
 
     def get_attack_box(self):
         return None
-
 
 class Knight:
     def __init__(self):

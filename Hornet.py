@@ -62,6 +62,7 @@ class Attack:
 
     def enter(self, event):
         self.hornet.frame = 0
+        self.has_attacked = False
         self.timer = get_time()
 
     def exit(self):
@@ -356,7 +357,6 @@ class Jump:
     def get_attack_box(self):
         return None
 
-
 class Run:
     def __init__(self, hornet):
         self.hornet = hornet
@@ -416,7 +416,6 @@ class Run:
     def get_attack_box(self):
         return None
 
-
 class Idle:
     def __init__(self, hornet):
         self.hornet = hornet
@@ -474,7 +473,6 @@ class Idle:
 
     def get_attack_box(self):
         return None
-
 
 class Hornet:
     def __init__(self):

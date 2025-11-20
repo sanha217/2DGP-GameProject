@@ -54,8 +54,8 @@ def add_collision_pair(group, a, b):
         collision_pairs[group][1].append(b)
 
 def collide(a, b):
-    left_a, bottom_a, right_a, top_a = a.get_bb()
-    left_b, bottom_b, right_b, top_b = b.get_bb()
+    left_a, bottom_a, right_a, top_a = a.get_body_box()
+    left_b, bottom_b, right_b, top_b = b.get_body_box()
 
     if left_a > right_b: return False
     if right_a < left_b: return False
