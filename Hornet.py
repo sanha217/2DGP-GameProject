@@ -85,6 +85,7 @@ class Skill:
             self.effect_coords.append((x, y, 424, 447))
 
     def enter(self, event):
+        self.hornet.gauge = 0
         self.hornet.frame = 0
         self.has_attacked = False
 
@@ -302,6 +303,7 @@ class Dash:
         total_frames = self.frame_count
 
         move_dist = self.hornet.dir * self.dash_speed_pps * game_framework.frame_time
+        self.hornet.gauge = min(self.hornet.gauge + abs(move_dist), self.hornet.max_gauge)
         self.hornet.x += move_dist
 
         traveled_distance = abs(self.hornet.x - self.start_x)
@@ -433,7 +435,9 @@ class Jump:
         target_frame = int(reversed_percentage * (self.frame_count - 1))
         self.hornet.frame = target_frame
 
-        self.hornet.x += self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
+        move_dist = self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
+        self.hornet.gauge = min(self.hornet.gauge + abs(move_dist), self.hornet.max_gauge)
+        self.hornet.x += move_dist
 
         time_scale = game_framework.frame_time * 60
         self.hornet.y += self.hornet.y_velocity * time_scale
@@ -519,7 +523,9 @@ class Run:
     def do(self):
         self.hornet.frame = (self.hornet.frame + self.frame_count * ACTION_PER_TIME * game_framework.frame_time) % self.frame_count
 
-        self.hornet.x += self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
+        move_dist = self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
+        self.hornet.gauge = min(self.hornet.gauge + abs(move_dist), self.hornet.max_gauge)
+        self.hornet.x += move_dist
 
     def draw(self):
         cur_frame = int(self.hornet.frame)
@@ -629,6 +635,10 @@ class Hornet:
         self.hp = 5
         self.hp_image = load_image('hp.png')
 
+        self.gauge = 0
+        self.max_gauge = 2000
+        self.gauge_image = load_image('gauge.png')
+
         self.image_width = 2392
         self.image_height = 13086
 
@@ -696,6 +706,22 @@ class Hornet:
                 hp_height
             )
 
+    def draw_gauge(self):
+        w = 200
+        h = 20
+
+        x_end = canvas_width - 40
+        x_start = x_end - w
+        y = canvas_height - 110
+
+        draw_rectangle(x_start, y, x_end, y + h)
+
+        fill_rate = self.gauge / self.max_gauge
+        current_w = w * fill_rate
+
+        if current_w > 0:
+            self.gauge_image.draw(x_start + current_w / 2, y + h / 2, current_w, h)
+
     def draw(self):
         self.state_machine.draw()
 
@@ -705,8 +731,13 @@ class Hornet:
         attack_box = self.get_attack_box()
         if attack_box: draw_rectangle(*attack_box)
         self.draw_hp()
+        self.draw_gauge()
 
     def handle_state_event(self, event):
+        if event.type == SDL_KEYDOWN and event.key == SDLK_LEFTBRACKET:
+            if self.gauge < self.max_gauge:
+                return
+
         self.state_machine.handle_state_event(('INPUT', event))
 
     def get_body_box(self):

@@ -128,6 +128,7 @@ class Skill:
         self.has_fired = False
 
     def enter(self, event):
+        self.knight.gauge = 0
         self.knight.frame = 0
         self.has_fired = False
 
@@ -289,6 +290,7 @@ class Dash:
 
         # 시간 기반 이동 적용
         move_dist = self.knight.dir * self.dash_speed_pps * game_framework.frame_time
+        self.knight.gauge = min(self.knight.gauge + abs(move_dist), self.knight.max_gauge)
         self.knight.x += move_dist
         self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
 
@@ -388,7 +390,10 @@ class Jump:
 
         # 이동 처리 (시간 기반)
         # X축 이동
-        self.knight.x += self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+        move_dist = self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+        self.knight.gauge = min(self.knight.gauge + abs(move_dist), self.knight.max_gauge)
+
+        self.knight.x += move_dist
 
         # Y축 이동 (프레임 타임 적용 보정)
         time_scale = game_framework.frame_time * 60
@@ -457,8 +462,10 @@ class Run:
     def do(self):
         self.knight.frame = (self.knight.frame + run_offset[1] * ACTION_PER_TIME * game_framework.frame_time) % \
                             run_offset[1]
-        self.knight.x += self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+        move_dist = self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+        self.knight.gauge = min(self.knight.gauge + abs(move_dist), self.knight.max_gauge)
 
+        self.knight.x += move_dist
         self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
 
     def draw(self):
@@ -540,6 +547,10 @@ class Knight:
         self.hp = 5
         self.hp_image = load_image('hp.png')
 
+        self.gauge = 0
+        self.max_gauge = 2000
+        self.gauge_image = load_image('gauge.png')
+
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
@@ -605,6 +616,20 @@ class Knight:
                 hp_height
             )
 
+    def draw_gauge(self):
+        x = 40
+        y = canvas_height - 110
+        w = 200
+        h = 20
+
+        draw_rectangle(x, y, x + w, y + h)
+
+        fill_rate = self.gauge / self.max_gauge
+        current_w = w * fill_rate
+
+        if current_w > 0:
+            self.gauge_image.draw(x + current_w / 2, y + h / 2, current_w, h)
+
     def draw(self):
         self.state_machine.draw()
         body_box = self.get_body_box()
@@ -614,8 +639,13 @@ class Knight:
         if attack_box:
             draw_rectangle(*attack_box)
         self.draw_hp()
+        self.draw_gauge()
 
     def handle_state_event(self, event):
+        if event.type == SDL_KEYDOWN and event.key == SDLK_t:
+            if self.gauge < self.max_gauge:
+                return
+
         self.state_machine.handle_state_event(('INPUT', event))
 
     def get_body_box(self):
