@@ -18,8 +18,11 @@ RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
-TIME_PER_ACTION = 0.1
+TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+
+TIME_PER_ATTACK = 0.15
+ATTACK_PER_TIME = 1.0 / TIME_PER_ATTACK
 
 run_offset = [1, 9]
 jump_offset = [10, 12]
@@ -79,7 +82,7 @@ class Attack:
 
     def do(self):
         # 애니메이션 속도 조절
-        self.hornet.frame += self.frame_count * ACTION_PER_TIME * game_framework.frame_time * 0.5
+        self.hornet.frame += self.frame_count * ATTACK_PER_TIME * game_framework.frame_time
 
         if int(self.hornet.frame) >= self.frame_count:
             self.hornet.frame = self.frame_count - 1

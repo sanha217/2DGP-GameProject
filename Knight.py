@@ -22,8 +22,11 @@ RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
-TIME_PER_ACTION = 0.1
+TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+
+TIME_PER_ATTACK = 0.15
+ATTACK_PER_TIME = 1.0 / TIME_PER_ATTACK
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
@@ -83,7 +86,7 @@ class Attack:
 
     def do(self):
         total_frames = attack_offset[1]
-        self.knight.frame = (self.knight.frame + total_frames * ACTION_PER_TIME * game_framework.frame_time) % total_frames
+        self.knight.frame = (self.knight.frame + total_frames * ATTACK_PER_TIME * game_framework.frame_time) % total_frames
 
         if int(self.knight.frame) == total_frames - 1:
             keystate = SDL_GetKeyboardState(None)

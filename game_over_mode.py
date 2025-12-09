@@ -38,9 +38,9 @@ def draw():
     play_mode.draw_world()
     dim_image.draw(640, 360, 1280, 720)
     if play_mode.winner:
-        font.draw(450, 400, f"{play_mode.winner} WINS!", (255, 0, 0))
+        font.draw(500, 400, f"{play_mode.winner} WINS!", (255, 0, 0))
 
-    font.draw(380, 300, "Press SPACE to Restart", (255, 255, 255))
+    font.draw(400, 300, "Press SPACE to Restart", (255, 255, 255))
     update_canvas()
 
 

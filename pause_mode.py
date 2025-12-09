@@ -34,7 +34,7 @@ def draw():
     play_mode.draw_world()
     dim_image.draw(640, 360, 1280, 720)
     font.draw(550, 360, "PAUSED", (255, 255, 0))
-    font.draw(450, 300, "Press ESC to Resume", (255, 255, 255))
+    font.draw(400, 300, "Press ESC to Resume", (255, 255, 255))
     update_canvas()
 
 def update():
