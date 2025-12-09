@@ -275,12 +275,14 @@ class Dash:
         self.dash_speed_pps = RUN_SPEED_PPS * 3
         self.dash_sound = load_wav('Hero Dash.mp3')
         self.dash_sound.set_volume(32)
+        self.passed_opponent = False
 
     def enter(self, event):
         self.knight.frame = 0
         self.knight.dir = self.knight.face_dir
         self.start_x = self.knight.x
         self.dash_sound.play()
+        self.passed_opponent = False
 
     def exit(self):
         self.knight.dir = 0
@@ -668,6 +670,13 @@ class Knight:
                         other.hp -= 1
                         print(f"Hornet Hit! HP: {other.hp}")
                         self.state_machine.cur_state.has_attacked = True
+
+            elif self.state_machine.cur_state == self.DASH:
+                if not self.state_machine.cur_state.passed_opponent:
+                    self.gauge = min(self.gauge + 500, self.max_gauge)
+                    self.state_machine.cur_state.passed_opponent = True
+                    print("Dash Cross Bonus! +500")
+
             return
 
         if group == 'hornet:knight':

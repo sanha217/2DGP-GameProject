@@ -112,9 +112,10 @@ class Skill:
 
         ex, ey_top, ew, eh = self.effect_coords[effect_idx]
         ebottom = self.hornet.image_height - ey_top - eh
+        scale_factor = 1.1
 
-        effect_display_w = int(ew / 1.5)
-        effect_display_h = int(eh / 1.5)
+        effect_display_w = int(ew * scale_factor)
+        effect_display_h = int(eh * scale_factor)
 
         if self.hornet.face_dir == 1:
             self.hornet.image.clip_composite_draw(
@@ -166,8 +167,10 @@ class Skill:
         return (left, bottom, right, top)
 
     def get_attack_box(self):
-        box_w = int(424 / 1.5)
-        box_h = int(447 / 1.5)
+        scale_factor = 1.1
+
+        box_w = int(424 * scale_factor)
+        box_h = int(447 * scale_factor)
 
         left = self.hornet.x - box_w // 2
         bottom = self.hornet.y - box_h // 2
@@ -283,6 +286,7 @@ class Dash:
         self.dash_speed_pps = RUN_SPEED_PPS * 3
         self.dash_sound = load_wav('Hero Dash.mp3')
         self.dash_sound.set_volume(32)
+        self.passed_opponent = False
 
         self.frame_coords = [
             (3, 2779, 255, 137),
@@ -295,6 +299,7 @@ class Dash:
         self.hornet.dir = self.hornet.face_dir
         self.start_x = self.hornet.x
         self.dash_sound.play()
+        self.passed_opponent = False
 
     def exit(self):
         self.hornet.dir = 0
@@ -758,6 +763,13 @@ class Hornet:
                         other.hp -= 1
                         print(f"Knight Hit! HP: {other.hp}")
                         self.state_machine.cur_state.has_attacked = True
+
+            elif self.state_machine.cur_state == self.DASH:
+                if not self.state_machine.cur_state.passed_opponent:
+                    self.gauge = min(self.gauge + 500, self.max_gauge)
+                    self.state_machine.cur_state.passed_opponent = True
+                    print("Hornet Dash Bonus! +500")
+
             return
 
         if group == 'hornet_skill:knight':
