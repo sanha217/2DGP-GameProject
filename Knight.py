@@ -125,14 +125,6 @@ class Skill:
         total_frames = skill_offset[1]
         self.knight.frame += total_frames * SKILL_PER_TIME * game_framework.frame_time
 
-        time_scale = game_framework.frame_time * 60
-        self.knight.y += self.knight.y_velocity * time_scale
-        self.knight.y_velocity -= self.knight.gravity * time_scale
-
-        if self.knight.y <= ground:
-            self.knight.y = ground
-            self.knight.y_velocity = 0
-
         if not self.has_fired and int(self.knight.frame) >= 8:
             skill = KnightSkill(self.knight.x, self.knight.y, self.knight.face_dir)
             game_world.add_object(skill, 1)
