@@ -69,6 +69,9 @@ class Skill:
     def __init__(self, hornet):
         self.hornet = hornet
 
+        self.skill_sound = load_wav('hornet skill.mp3')
+        self.skill_sound.set_volume(32)
+
         self.frame_coords = []
         for i in range(10):
             x = 3 + i * (236 + 3)
@@ -88,6 +91,7 @@ class Skill:
         self.hornet.gauge = 0
         self.hornet.frame = 0
         self.has_attacked = False
+        self.skill_sound.play()
 
     def exit(self):
         pass
@@ -626,7 +630,7 @@ class Idle:
 
 class Hornet:
     def __init__(self):
-        self.x = canvas_width // 2
+        self.x = canvas_width - 50
         self.y = ground + 10
         self.y_velocity = 0
         self.gravity = 0.7

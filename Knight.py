@@ -126,11 +126,14 @@ class Skill:
     def __init__(self, knight):
         self.knight = knight
         self.has_fired = False
+        self.skill_sound = load_wav('knight skill.mp3')
+        self.skill_sound.set_volume(32)
 
     def enter(self, event):
         self.knight.gauge = 0
         self.knight.frame = 0
         self.has_fired = False
+        self.skill_sound.play()
 
     def exit(self):
         pass
@@ -535,7 +538,7 @@ class Idle:
 
 class Knight:
     def __init__(self):
-        self.x = canvas_width // 2
+        self.x = 50
         self.y = ground
         self.y_velocity = 0
         self.gravity = 0.7
