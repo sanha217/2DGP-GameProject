@@ -1,10 +1,9 @@
-from pico2d import load_image, get_time, draw_rectangle
+from pico2d import load_image, get_time, draw_rectangle, load_wav
 from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
     SDLK_j, SDLK_l, SDLK_i, SDLK_SEMICOLON, SDLK_QUOTE, \
     SDL_SCANCODE_J, SDL_SCANCODE_L, SDL_SCANCODE_I
 
 from state_machine import StateMachine
-from pico2d import load_image, get_time, draw_rectangle, load_wav
 import game_framework
 
 canvas_width = 1280
@@ -80,7 +79,7 @@ class Attack:
 
     def do(self):
         # 애니메이션 속도 조절
-        self.hornet.frame += self.frame_count * ACTION_PER_TIME * game_framework.frame_time * 0.5  # 공격은 좀 더 빠르게 또는 느리게 조절 가능
+        self.hornet.frame += self.frame_count * ACTION_PER_TIME * game_framework.frame_time * 0.5
 
         if int(self.hornet.frame) >= self.frame_count:
             self.hornet.frame = self.frame_count - 1
@@ -109,8 +108,8 @@ class Attack:
 
         x, y_top, w, h = self.frame_coords[cur_frame]
 
-        display_w = w // 1.5
-        display_h = h // 1.5
+        display_w = int(w / 1.5)
+        display_h = int(h / 1.5)
 
         # 좌표 변환
         bottom = self.hornet.image_height - y_top - h
@@ -130,8 +129,8 @@ class Attack:
             )
 
     def get_body_box(self):
-        box_w = 108 // 1.5
-        box_h = 162 // 1.5
+        box_w = int(108 / 1.5)
+        box_h = int(162 / 1.5)
 
         x_offset = -10 * self.hornet.face_dir
         y_offset = -24
@@ -195,7 +194,7 @@ class Dash:
 
         cur_frame = int(self.hornet.frame)
         current_w = self.frame_coords[cur_frame][2]
-        display_w = current_w // 2
+        display_w = int(current_w / 2)
 
         self.hornet.x = max(display_w // 2, min(self.hornet.x, canvas_width - display_w // 2))
 
@@ -229,8 +228,8 @@ class Dash:
         cur_frame = int(self.hornet.frame)
         x, y_top, w, h = self.frame_coords[cur_frame]
 
-        display_w = w // 1.5
-        display_h = h // 1.5
+        display_w = int(w / 1.5)
+        display_h = int(h / 1.5)
 
         bottom = self.hornet.image_height - y_top - h
 
@@ -249,8 +248,8 @@ class Dash:
             )
 
     def get_body_box(self):
-        box_w = 113 // 1.5
-        box_h = 137 // 1.5
+        box_w = int(113 / 1.5)
+        box_h = int(137 / 1.5)
 
         x_offset = -27 * self.hornet.face_dir
         y_offset = 0
@@ -279,8 +278,8 @@ class Jump:
         self.gap = 3
         self.frame_count = 9
 
-        self.display_width = self.width // 1.5
-        self.display_height = self.height // 1.5
+        self.display_width = int(self.width / 1.5)
+        self.display_height = int(self.height / 1.5)
 
     def enter(self, event):
         if i_down(event):
@@ -342,7 +341,8 @@ class Jump:
             self.hornet.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
-        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        cur_frame = int(self.hornet.frame)
+        left = self.start_x + (cur_frame * (self.width + self.gap))
         bottom = self.hornet.image_height - self.start_y_top - self.height
 
         if self.hornet.face_dir == 1:
@@ -364,10 +364,10 @@ class Jump:
         height = 114
         x_offset = 14 * self.hornet.face_dir * -1
 
-        left = self.hornet.x + x_offset - width // 1.5
-        right = self.hornet.x + x_offset + width // 1.5
-        bottom = self.hornet.y - height // 1.5
-        top = self.hornet.y + height // 1.5
+        left = self.hornet.x + x_offset - int(width / 1.5)
+        right = self.hornet.x + x_offset + int(width / 1.5)
+        bottom = self.hornet.y - int(height / 1.5)
+        top = self.hornet.y + int(height / 1.5)
         return (left, bottom, right, top)
 
     def get_attack_box(self):
@@ -384,8 +384,8 @@ class Run:
         self.gap = 3
         self.frame_count = 8
 
-        self.display_width = self.width // 1.5
-        self.display_height = self.height // 1.5
+        self.display_width = int(self.width / 1.5)
+        self.display_height = int(self.height / 1.5)
 
     def enter(self, event):
         self.hornet.frame = 0
@@ -426,10 +426,10 @@ class Run:
         height = 95
         x_offset = 3 * self.hornet.face_dir
 
-        left = self.hornet.x + x_offset - width // 1.5
-        right = self.hornet.x + x_offset + width // 1.5
-        bottom = self.hornet.y - height // 1.5
-        top = self.hornet.y + height // 1.5
+        left = self.hornet.x + x_offset - int(width / 1.5)
+        right = self.hornet.x + x_offset + int(width / 1.5)
+        bottom = self.hornet.y - int(height / 1.5)
+        top = self.hornet.y + int(height / 1.5)
         return (left, bottom, right, top)
 
     def get_attack_box(self):
@@ -446,8 +446,8 @@ class Idle:
         self.gap = 3
         self.frame_count = 6
 
-        self.display_width = self.width // 1.5
-        self.display_height = self.height // 1.5
+        self.display_width = int(self.width / 1.5)
+        self.display_height = int(self.height / 1.5)
 
     def enter(self, event):
         self.hornet.frame = 0
@@ -457,7 +457,8 @@ class Idle:
         pass
 
     def do(self):
-        self.hornet.frame = ( self.hornet.frame + self.frame_count * ACTION_PER_TIME * game_framework.frame_time) % self.frame_count
+        self.hornet.frame = (
+                                        self.hornet.frame + self.frame_count * ACTION_PER_TIME * game_framework.frame_time) % self.frame_count
 
     def draw(self):
         cur_frame = int(self.hornet.frame)
@@ -483,10 +484,10 @@ class Idle:
         height = 107
         x_offset = 6 * self.hornet.face_dir * -1
 
-        left = self.hornet.x + x_offset - width // 1.5
-        right = self.hornet.x + x_offset + width // 1.5
-        bottom = self.hornet.y - height // 1.5
-        top = self.hornet.y + height // 1.5
+        left = self.hornet.x + x_offset - int(width / 1.5)
+        right = self.hornet.x + x_offset + int(width / 1.5)
+        bottom = self.hornet.y - int(height / 1.5)
+        top = self.hornet.y + int(height / 1.5)
         return (left, bottom, right, top)
 
     def get_attack_box(self):
