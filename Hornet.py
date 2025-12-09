@@ -1,5 +1,5 @@
 from pico2d import load_image, get_time, draw_rectangle, load_wav
-from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
+from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, SDLK_LEFTBRACKET, \
     SDLK_j, SDLK_l, SDLK_i, SDLK_SEMICOLON, SDLK_QUOTE, \
     SDL_SCANCODE_J, SDL_SCANCODE_L, SDL_SCANCODE_I
 
@@ -23,6 +23,9 @@ ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 
 TIME_PER_ATTACK = 0.15
 ATTACK_PER_TIME = 1.0 / TIME_PER_ATTACK
+
+TIME_PER_SKILL = 0.5
+SKILL_PER_TIME = 1.0 / TIME_PER_SKILL
 
 run_offset = [1, 9]
 jump_offset = [10, 12]
@@ -58,6 +61,118 @@ def semicolon_down(e):
 def quote_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_QUOTE
 
+def bracket_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_LEFTBRACKET
+
+
+class Skill:
+    def __init__(self, hornet):
+        self.hornet = hornet
+
+        self.frame_coords = []
+        for i in range(10):
+            x = 3 + i * (236 + 3)
+            y = 5185
+            self.frame_coords.append((x, y, 236, 200))
+
+        self.effect_coords = []
+        for i in range(9):
+            row = 0 if i < 5 else 1
+            col = i if i < 5 else i - 5
+
+            x = 3 + col * (424 + 3)
+            y = 5867 + row * (447 + 3)
+            self.effect_coords.append((x, y, 424, 447))
+
+    def enter(self, event):
+        self.hornet.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+        self.hornet.frame += len(self.frame_coords) * SKILL_PER_TIME * game_framework.frame_time
+
+        if int(self.hornet.frame) >= len(self.frame_coords):
+            self.hornet.frame = len(self.frame_coords) - 1
+
+            if self.hornet.y > ground:
+                self.hornet.state_machine.cur_state = self.hornet.JUMP
+            else:
+                self.hornet.state_machine.cur_state = self.hornet.IDLE
+
+            self.hornet.state_machine.cur_state.enter(('SKILL_END', 0))
+
+    def draw(self):
+        effect_idx = int(self.hornet.frame)
+        if effect_idx >= len(self.effect_coords):
+            effect_idx = len(self.effect_coords) - 1
+
+        ex, ey_top, ew, eh = self.effect_coords[effect_idx]
+        ebottom = self.hornet.image_height - ey_top - eh
+
+        effect_display_w = int(ew / 1.5)
+        effect_display_h = int(eh / 1.5)
+
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_composite_draw(
+                ex, ebottom, ew, eh,
+                0, 'h',
+                self.hornet.x, self.hornet.y,
+                effect_display_w, effect_display_h
+            )
+        else:
+            self.hornet.image.clip_draw(
+                ex, ebottom, ew, eh,
+                self.hornet.x, self.hornet.y,
+                effect_display_w, effect_display_h
+            )
+
+        cur_frame = int(self.hornet.frame)
+        if cur_frame >= len(self.frame_coords):
+            cur_frame = len(self.frame_coords) - 1
+
+        x, y_top, w, h = self.frame_coords[cur_frame]
+        bottom = self.hornet.image_height - y_top - h
+
+        display_w = int(w / 1.5)
+        display_h = int(h / 1.5)
+
+        if self.hornet.face_dir == 1:
+            self.hornet.image.clip_composite_draw(
+                x, bottom, w, h,
+                0, 'h',
+                self.hornet.x, self.hornet.y,
+                display_w, display_h
+            )
+        else:
+            self.hornet.image.clip_draw(
+                x, bottom, w, h,
+                self.hornet.x, self.hornet.y,
+                display_w, display_h
+            )
+
+    def get_body_box(self):
+        width = 55
+        height = 107
+        x_offset = 6 * self.hornet.face_dir * -1
+
+        left = self.hornet.x + x_offset - int(width / 1.5)
+        right = self.hornet.x + x_offset + int(width / 1.5)
+        bottom = self.hornet.y - int(height / 1.5)
+        top = self.hornet.y + int(height / 1.5)
+        return (left, bottom, right, top)
+
+    def get_attack_box(self):
+        box_w = int(424 / 1.5)
+        box_h = int(447 / 1.5)
+
+        left = self.hornet.x - box_w // 2
+        bottom = self.hornet.y - box_h // 2
+        right = self.hornet.x + box_w // 2
+        top = self.hornet.y + box_h // 2
+
+        return left, bottom, right, top
 
 class Attack:
     def __init__(self, hornet):
@@ -521,6 +636,7 @@ class Hornet:
         self.JUMP = Jump(self)
         self.DASH = Dash(self)
         self.ATTACK = Attack(self)
+        self.SKILL = Skill(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
@@ -531,7 +647,8 @@ class Hornet:
                     j_up: self.RUN,
                     i_down: self.JUMP,
                     semicolon_down: self.DASH,
-                    quote_down: self.ATTACK
+                    quote_down: self.ATTACK,
+                    bracket_down: self.SKILL
                 },
                 self.RUN: {
                     l_down: self.IDLE,
@@ -540,7 +657,8 @@ class Hornet:
                     j_up: self.IDLE,
                     i_down: self.JUMP,
                     semicolon_down: self.DASH,
-                    quote_down: self.ATTACK
+                    quote_down: self.ATTACK,
+                    bracket_down: self.SKILL
                 },
                 self.JUMP: {
                     l_down: self.JUMP,
@@ -548,11 +666,14 @@ class Hornet:
                     l_up: self.JUMP,
                     j_up: self.JUMP,
                     semicolon_down: self.DASH,
-                    quote_down: self.ATTACK
+                    quote_down: self.ATTACK,
+                    bracket_down: self.SKILL
                 },
                 self.DASH: {
                 },
                 self.ATTACK: {
+                },
+                self.SKILL: {
                 }
             }
         )
