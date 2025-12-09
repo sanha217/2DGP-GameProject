@@ -77,12 +77,14 @@ def t_down(e): # 스킬
 class KnightSkill:
     image = None
 
-    def __init__(self, x, y, dir):
+    def __init__(self, knight, x, y, dir):
         if KnightSkill.image == None:
             KnightSkill.image = load_image('knight skill.png')
+        self.knight = knight
         self.x, self.y, self.dir = x, y, dir
         self.speed = RUN_SPEED_PPS * 2.0
         self.frame = 0
+        self.hit_objects = []
 
     def update(self):
         self.x += self.dir * self.speed * game_framework.frame_time
@@ -90,6 +92,8 @@ class KnightSkill:
 
         if self.x < -100 or self.x > canvas_width + 100:
             game_world.remove_object(self)
+            if self in self.knight.projectiles:
+                self.knight.projectiles.remove(self)
 
     def draw(self):
         frame_idx = int(self.frame)
@@ -100,11 +104,20 @@ class KnightSkill:
         else:
             self.image.clip_composite_draw(0, bottom, 512, 128, 0, 'h', self.x, self.y, 512, 128)
 
+        draw_rectangle(*self.get_body_box())
+
     def get_body_box(self):
-        return self.x - 100, self.y - 40, self.x + 100, self.y + 40
+        return self.x - 256, self.y - 64, self.x + 256, self.y + 64
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'knight_skill:hornet':
+            if other in self.hit_objects:
+                return
+
+            other.hp -= 1
+            print(f"Skill Hit! Hornet HP: {other.hp}")
+
+            self.hit_objects.append(other)
 
 
 # 상태 클래스
@@ -126,8 +139,10 @@ class Skill:
         self.knight.frame += total_frames * SKILL_PER_TIME * game_framework.frame_time
 
         if not self.has_fired and int(self.knight.frame) >= 8:
-            skill = KnightSkill(self.knight.x, self.knight.y, self.knight.face_dir)
+            skill = KnightSkill(self.knight, self.knight.x, self.knight.y, self.knight.face_dir)
             game_world.add_object(skill, 1)
+            self.knight.projectiles.append(skill)
+            game_world.add_collision_pair('knight_skill:hornet', skill, None)
             self.has_fired = True
 
         if int(self.knight.frame) >= total_frames:
@@ -520,6 +535,7 @@ class Knight:
         self.face_dir = 1
         self.body_box_offset = (-27, -57, 29, 58)
         self.image = load_image('knight.png')
+        self.projectiles = []
 
         self.hp = 5
         self.hp_image = load_image('hp.png')

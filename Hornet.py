@@ -86,6 +86,7 @@ class Skill:
 
     def enter(self, event):
         self.hornet.frame = 0
+        self.has_attacked = False
 
     def exit(self):
         pass
@@ -727,6 +728,14 @@ class Hornet:
                         print(f"Knight Hit! HP: {other.hp}")
                         self.state_machine.cur_state.has_attacked = True
             return
+
+        if group == 'hornet_skill:knight':
+            if self.state_machine.cur_state == self.SKILL:
+                if not self.state_machine.cur_state.has_attacked:  # 스킬당 1번만 타격
+                    if self.collide_attack_box(other):
+                        other.hp -= 1
+                        print(f"Hornet Skill Hit! Knight HP: {other.hp}")
+                        self.state_machine.cur_state.has_attacked = True
 
         if group == 'knight:hornet':
             pass

@@ -35,6 +35,9 @@ def enter():
     game_world.add_collision_pair('knight:hornet', knight, hornet)
     game_world.add_collision_pair('hornet:knight', hornet, knight)
 
+    game_world.add_collision_pair('knight_skill:hornet', None, hornet)
+    game_world.add_collision_pair('hornet_skill:knight', hornet, knight)
+
 
 def exit():
     game_world.clear()
