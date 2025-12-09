@@ -4,13 +4,22 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
     SDL_SCANCODE_J, SDL_SCANCODE_L, SDL_SCANCODE_I
 
 from state_machine import StateMachine
+import game_framework
 
 canvas_width = 1280
 canvas_height = 720
 
 frame_size = 128
 ground = 90
-x_velocity = 5
+
+PIXEL_PER_METER = (10.0 / 0.3)
+RUN_SPEED_KMPH = 60.0
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+TIME_PER_ACTION = 0.1
+ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 
 run_offset = [1, 9]
 jump_offset = [10, 12]
@@ -58,44 +67,43 @@ class Attack:
         ]
         self.frame_count = len(self.frame_coords)
 
-        self.timer = 0
-
     def enter(self, event):
         self.hornet.frame = 0
         self.has_attacked = False
-        self.timer = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        if get_time() - self.timer >= 0.1:
-            self.hornet.frame += 1
-            self.timer = get_time()
+        # 애니메이션 속도 조절
+        self.hornet.frame += self.frame_count * ACTION_PER_TIME * game_framework.frame_time * 0.5  # 공격은 좀 더 빠르게 또는 느리게 조절 가능
 
-            if self.hornet.frame >= self.frame_count:
-                self.hornet.frame = self.frame_count - 1
+        if int(self.hornet.frame) >= self.frame_count:
+            self.hornet.frame = self.frame_count - 1
 
-                keystate = SDL_GetKeyboardState(None)
-                if self.hornet.y > ground:
-                    next_state = self.hornet.JUMP
-                elif keystate[SDL_SCANCODE_L]:
-                    self.hornet.dir = 1
-                    self.hornet.face_dir = 1
-                    next_state = self.hornet.RUN
-                elif keystate[SDL_SCANCODE_J]:
-                    self.hornet.dir = -1
-                    self.hornet.face_dir = -1
-                    next_state = self.hornet.RUN
-                else:
-                    next_state = self.hornet.IDLE
+            keystate = SDL_GetKeyboardState(None)
+            if self.hornet.y > ground:
+                next_state = self.hornet.JUMP
+            elif keystate[SDL_SCANCODE_L]:
+                self.hornet.dir = 1
+                self.hornet.face_dir = 1
+                next_state = self.hornet.RUN
+            elif keystate[SDL_SCANCODE_J]:
+                self.hornet.dir = -1
+                self.hornet.face_dir = -1
+                next_state = self.hornet.RUN
+            else:
+                next_state = self.hornet.IDLE
 
-                self.hornet.state_machine.cur_state.exit()
-                self.hornet.state_machine.cur_state = next_state
-                self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
+            self.hornet.state_machine.cur_state.exit()
+            self.hornet.state_machine.cur_state = next_state
+            self.hornet.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
-        x, y_top, w, h = self.frame_coords[self.hornet.frame]
+        cur_frame = int(self.hornet.frame)
+        if cur_frame >= self.frame_count: cur_frame = self.frame_count - 1
+
+        x, y_top, w, h = self.frame_coords[cur_frame]
 
         display_w = w // 1.5
         display_h = h // 1.5
@@ -144,11 +152,12 @@ class Attack:
         else:
             return (attack_x - r_offset, attack_y + b_offset, attack_x - l_offset, attack_y + t_offset)
 
+
 class Dash:
     def __init__(self, hornet):
         self.hornet = hornet
         self.dash_distance = frame_size * 3
-        self.dash_speed = 25
+        self.dash_speed_pps = RUN_SPEED_PPS * 3
 
         self.frame_coords = [
             (3, 2779, 255, 137),
@@ -166,19 +175,21 @@ class Dash:
 
     def do(self):
         total_frames = self.frame_count
-        total_distance = self.dash_distance
-        traveled_distance = abs(self.hornet.x - self.start_x)
 
-        percentage = 1.0 if total_distance == 0 else traveled_distance / total_distance
-        self.hornet.frame = int(percentage * total_frames)
+        move_dist = self.hornet.dir * self.dash_speed_pps * game_framework.frame_time
+        self.hornet.x += move_dist
+
+        traveled_distance = abs(self.hornet.x - self.start_x)
+        percentage = 1.0 if self.dash_distance == 0 else traveled_distance / self.dash_distance
+        self.hornet.frame = percentage * total_frames
 
         if self.hornet.frame >= total_frames:
             self.hornet.frame = total_frames - 1
 
-        current_w = self.frame_coords[self.hornet.frame][2]
+        cur_frame = int(self.hornet.frame)
+        current_w = self.frame_coords[cur_frame][2]
         display_w = current_w // 2
 
-        self.hornet.x += self.hornet.dir * self.dash_speed
         self.hornet.x = max(display_w // 2, min(self.hornet.x, canvas_width - display_w // 2))
 
         hit_wall = False
@@ -186,8 +197,6 @@ class Dash:
             hit_wall = True
         elif self.hornet.dir == -1 and self.hornet.x == display_w // 2:
             hit_wall = True
-
-        traveled_distance = abs(self.hornet.x - self.start_x)
 
         if traveled_distance >= self.dash_distance or hit_wall:
             keystate = SDL_GetKeyboardState(None)
@@ -210,7 +219,8 @@ class Dash:
             self.hornet.state_machine.cur_state.enter(('DASH_END', 0))
 
     def draw(self):
-        x, y_top, w, h = self.frame_coords[self.hornet.frame]
+        cur_frame = int(self.hornet.frame)
+        x, y_top, w, h = self.frame_coords[cur_frame]
 
         display_w = w // 1.5
         display_h = h // 1.5
@@ -251,6 +261,7 @@ class Dash:
     def get_attack_box(self):
         return None
 
+
 class Jump:
     def __init__(self, hornet):
         self.hornet = hornet
@@ -289,11 +300,7 @@ class Jump:
         min_velocity = -20.0
         velocity_range = max_velocity - min_velocity
 
-        clamped_v = self.hornet.y_velocity
-        if clamped_v > max_velocity:
-            clamped_v = max_velocity
-        elif clamped_v < min_velocity:
-            clamped_v = min_velocity
+        clamped_v = max(min(self.hornet.y_velocity, max_velocity), min_velocity)
 
         percentage = (clamped_v - min_velocity) / velocity_range
         reversed_percentage = 1.0 - percentage
@@ -301,9 +308,11 @@ class Jump:
         target_frame = int(reversed_percentage * (self.frame_count - 1))
         self.hornet.frame = target_frame
 
-        self.hornet.x += self.hornet.dir * x_velocity
-        self.hornet.y += self.hornet.y_velocity
-        self.hornet.y_velocity -= self.hornet.gravity
+        self.hornet.x += self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
+
+        time_scale = game_framework.frame_time * 60
+        self.hornet.y += self.hornet.y_velocity * time_scale
+        self.hornet.y_velocity -= self.hornet.gravity * time_scale
 
         if self.hornet.y <= ground:
             self.hornet.y = ground
@@ -357,6 +366,7 @@ class Jump:
     def get_attack_box(self):
         return None
 
+
 class Run:
     def __init__(self, hornet):
         self.hornet = hornet
@@ -381,11 +391,13 @@ class Run:
         pass
 
     def do(self):
-        self.hornet.frame = (self.hornet.frame + 1) % self.frame_count
-        self.hornet.x += self.hornet.dir * x_velocity
+        self.hornet.frame = (self.hornet.frame + self.frame_count * ACTION_PER_TIME * game_framework.frame_time) % self.frame_count
+
+        self.hornet.x += self.hornet.dir * RUN_SPEED_PPS * game_framework.frame_time
 
     def draw(self):
-        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        cur_frame = int(self.hornet.frame)
+        left = self.start_x + (cur_frame * (self.width + self.gap))
         bottom = self.hornet.image_height - self.start_y_top - self.height
 
         if self.hornet.face_dir == 1:
@@ -416,6 +428,7 @@ class Run:
     def get_attack_box(self):
         return None
 
+
 class Idle:
     def __init__(self, hornet):
         self.hornet = hornet
@@ -432,18 +445,16 @@ class Idle:
     def enter(self, event):
         self.hornet.frame = 0
         self.hornet.dir = 0
-        self.hornet.idle_start_time = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        if get_time() - self.hornet.idle_start_time >= 0.2:
-            self.hornet.frame = (self.hornet.frame + 1) % self.frame_count
-            self.hornet.idle_start_time = get_time()
+        self.hornet.frame = ( self.hornet.frame + self.frame_count * ACTION_PER_TIME * game_framework.frame_time) % self.frame_count
 
     def draw(self):
-        left = self.start_x + (self.hornet.frame * (self.width + self.gap))
+        cur_frame = int(self.hornet.frame)
+        left = self.start_x + (cur_frame * (self.width + self.gap))
         bottom = self.hornet.image_height - self.start_y_top - self.height
 
         if self.hornet.face_dir == 1:
@@ -474,13 +485,14 @@ class Idle:
     def get_attack_box(self):
         return None
 
+
 class Hornet:
     def __init__(self):
         self.x = canvas_width // 2
         self.y = ground + 10
         self.y_velocity = 0
         self.gravity = 0.7
-        self.frame = 0
+        self.frame = 0.0
         self.dir = 0
         self.face_dir = 1
         self.body_box_offset = (-30, 0, 30, 100)
@@ -562,13 +574,6 @@ class Hornet:
 
     def handle_state_event(self, event):
         self.state_machine.handle_state_event(('INPUT', event))
-
-    def get_body_box(self):
-        l = self.x + self.body_box_offset[0]
-        b = self.y + self.body_box_offset[1]
-        r = self.x + self.body_box_offset[2]
-        t = self.y + self.body_box_offset[3]
-        return (l, b, r, t)
 
     def get_body_box(self):
         if hasattr(self.state_machine.cur_state, 'get_body_box'):

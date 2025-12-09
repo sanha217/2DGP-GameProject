@@ -4,6 +4,7 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
     SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_W
 
 from state_machine import StateMachine
+import game_framework
 
 # 설정 변수
 
@@ -13,7 +14,15 @@ image_size = 2048
 frame_size = 128
 
 ground = 90
-x_velocity = 5
+
+PIXEL_PER_METER = (10.0 / 0.3)
+RUN_SPEED_KMPH = 60.0
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+TIME_PER_ACTION = 0.1
+ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 
 # [y오프셋. 프레임 오프셋]
 idle_offset = [9, 7]
@@ -69,8 +78,10 @@ class Attack:
         pass
 
     def do(self):
-        self.knight.frame = (self.knight.frame + 1) % attack_offset[1]
-        if self.knight.frame == 7:
+        total_frames = attack_offset[1]
+        self.knight.frame = (self.knight.frame + total_frames * ACTION_PER_TIME * game_framework.frame_time) % total_frames
+
+        if int(self.knight.frame) == total_frames - 1:
             keystate = SDL_GetKeyboardState(None)
 
             if self.knight.y > ground:
@@ -91,9 +102,10 @@ class Attack:
             self.knight.state_machine.cur_state.enter(('ATTACK_END', 0))
 
     def draw(self):
+        cur_frame = int(self.knight.frame)  # 실수형 프레임을 정수로 변환
         if self.knight.face_dir == 1:
             self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * attack_offset[0],
                 frame_size, frame_size,
                 self.knight.x, self.knight.y,
@@ -109,7 +121,7 @@ class Attack:
             )
         else:
             self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * attack_offset[0],
                 frame_size, frame_size,
                 0, 'h',
@@ -140,7 +152,7 @@ class Dash:
     def __init__(self, knight):
         self.knight = knight
         self.dash_distance = frame_size * 3
-        self.dash_speed = 25
+        self.dash_speed_pps = RUN_SPEED_PPS * 3
 
     def enter(self, event):
         self.knight.frame = 0
@@ -152,24 +164,24 @@ class Dash:
 
     def do(self):
         total_frames = dash_offset[1]
-        total_distance = self.dash_distance
-        traveled_distance = abs(self.knight.x - self.start_x)
 
-        percentage = 1.0 if total_distance == 0 else traveled_distance / total_distance
-        self.knight.frame = int(percentage * total_frames)
+        # 시간 기반 이동 적용
+        move_dist = self.knight.dir * self.dash_speed_pps * game_framework.frame_time
+        self.knight.x += move_dist
+        self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
+
+        traveled_distance = abs(self.knight.x - self.start_x)
+        percentage = 1.0 if self.dash_distance == 0 else traveled_distance / self.dash_distance
+        self.knight.frame = percentage * total_frames
+
         if self.knight.frame >= total_frames:
             self.knight.frame = total_frames - 1
-
-        self.knight.x += self.knight.dir * self.dash_speed
-        self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
 
         hit_wall = False
         if self.knight.dir == 1 and self.knight.x == canvas_width - frame_size // 2:
             hit_wall = True
         elif self.knight.dir == -1 and self.knight.x == frame_size // 2:
             hit_wall = True
-
-        traveled_distance = abs(self.knight.x - self.start_x)
 
         if traveled_distance >= self.dash_distance or hit_wall:
             keystate = SDL_GetKeyboardState(None)
@@ -192,9 +204,10 @@ class Dash:
             self.knight.state_machine.cur_state.enter(('DASH_END', 0))
 
     def draw(self):
+        cur_frame = int(self.knight.frame)
         if self.knight.face_dir == 1:
             self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * dash_offset[0],
                 frame_size, frame_size,
                 self.knight.x, self.knight.y,
@@ -202,7 +215,7 @@ class Dash:
             )
         else:
             self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * dash_offset[0],
                 frame_size, frame_size,
                 0, 'h',
@@ -213,16 +226,15 @@ class Dash:
     def get_attack_box(self):
         return None
 
-class Jump:
-    global y_velocity
 
+class Jump:
     def __init__(self, knight):
         self.knight = knight
 
     def enter(self, event):
         if w_down(event):
             self.knight.frame = 0
-            self.knight.y_velocity = 20
+            self.knight.y_velocity = 20  # 초기 점프력 (보정 필요 가능)
 
         keystate = SDL_GetKeyboardState(None)
         if keystate[SDL_SCANCODE_D] and keystate[SDL_SCANCODE_A]:
@@ -240,23 +252,27 @@ class Jump:
         pass
 
     def do(self):
+        # 점프 애니메이션 처리
         max_velocity = 20.0
         min_velocity = -20.0
         velocity_range = max_velocity - min_velocity
         num_frames = jump_offset[1]
-        clamped_v = self.knight.y_velocity
-        if clamped_v > max_velocity:
-            clamped_v = max_velocity
-        elif clamped_v < min_velocity:
-            clamped_v = min_velocity
+        clamped_v = max(min(self.knight.y_velocity, max_velocity), min_velocity)
+
         percentage = (clamped_v - min_velocity) / velocity_range
         reversed_percentage = 1.0 - percentage
         target_frame = int(reversed_percentage * (num_frames - 1))
-
         self.knight.frame = target_frame
-        self.knight.x += self.knight.dir * x_velocity
-        self.knight.y += self.knight.y_velocity
-        self.knight.y_velocity -= self.knight.gravity
+
+        # 이동 처리 (시간 기반)
+        # X축 이동
+        self.knight.x += self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+
+        # Y축 이동 (프레임 타임 적용 보정)
+        time_scale = game_framework.frame_time * 60
+
+        self.knight.y += self.knight.y_velocity * time_scale
+        self.knight.y_velocity -= self.knight.gravity * time_scale
 
         if self.knight.y <= ground:
             self.knight.y = ground
@@ -279,9 +295,10 @@ class Jump:
             self.knight.state_machine.cur_state.enter(('LAND', 0))
 
     def draw(self):
+        cur_frame = int(self.knight.frame)
         if self.knight.face_dir == 1:
             self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * jump_offset[0],
                 frame_size, frame_size,
                 self.knight.x, self.knight.y,
@@ -289,7 +306,7 @@ class Jump:
             )
         else:
             self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * jump_offset[0],
                 frame_size, frame_size,
                 0, 'h',
@@ -299,6 +316,7 @@ class Jump:
 
     def get_attack_box(self):
         return None
+
 
 class Run:
     def __init__(self, knight):
@@ -315,13 +333,17 @@ class Run:
         pass
 
     def do(self):
-        self.knight.frame = (self.knight.frame + 1) % run_offset[1]
-        self.knight.x += self.knight.dir * x_velocity
+        self.knight.frame = (self.knight.frame + run_offset[1] * ACTION_PER_TIME * game_framework.frame_time) % \
+                            run_offset[1]
+        self.knight.x += self.knight.dir * RUN_SPEED_PPS * game_framework.frame_time
+
+        self.knight.x = max(frame_size // 2, min(self.knight.x, canvas_width - frame_size // 2))
 
     def draw(self):
+        cur_frame = int(self.knight.frame)
         if self.knight.face_dir == 1:
             self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
                 self.knight.x, self.knight.y,
@@ -329,7 +351,7 @@ class Run:
             )
         else:
             self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * run_offset[0],
                 frame_size, frame_size,
                 0, 'h',
@@ -339,6 +361,7 @@ class Run:
 
     def get_attack_box(self):
         return None
+
 
 class Idle:
     def __init__(self, knight):
@@ -347,20 +370,19 @@ class Idle:
     def enter(self, event):
         self.knight.frame = 0
         self.knight.dir = 0
-        self.knight.idle_start_time = get_time()
 
     def exit(self):
         pass
 
     def do(self):
-        if get_time() - self.knight.idle_start_time >= 0.2:
-            self.knight.frame = (self.knight.frame + 1) % idle_offset[1]
-            self.knight.idle_start_time = get_time()
+        self.knight.frame = (self.knight.frame + idle_offset[1] * ACTION_PER_TIME * game_framework.frame_time) % \
+                            idle_offset[1]
 
     def draw(self):
+        cur_frame = int(self.knight.frame)
         if self.knight.face_dir == 1:
             self.knight.image.clip_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
                 self.knight.x, self.knight.y,
@@ -368,7 +390,7 @@ class Idle:
             )
         else:
             self.knight.image.clip_composite_draw(
-                self.knight.frame * frame_size,
+                cur_frame * frame_size,
                 image_size - frame_size * idle_offset[0],
                 frame_size, frame_size,
                 0, 'h',
@@ -379,13 +401,14 @@ class Idle:
     def get_attack_box(self):
         return None
 
+
 class Knight:
     def __init__(self):
         self.x = canvas_width // 2
         self.y = ground
         self.y_velocity = 0
         self.gravity = 0.7
-        self.frame = 0
+        self.frame = 0.0
         self.dir = 0
         self.face_dir = 1
         self.body_box_offset = (-27, -57, 29, 58)
