@@ -10,7 +10,7 @@ def enter():
     global image, font
     image = load_image('title.png')
     try:
-        font = load_font('ENCR10B.TTF', 50)
+        font = load_font('Lora-VariableFont_wght.ttf', 50)
     except IOError:
         font = load_font('C:/Windows/Fonts/arial.ttf', 50)
 
