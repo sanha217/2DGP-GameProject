@@ -14,14 +14,18 @@ boy = None
 knight = None
 hornet = None
 winner = None
-
+bgm = None
 
 def enter():
-    global knight, hornet, winner
+    global knight, hornet, winner, bgm
 
     # 게임 시작 시 초기화
     game_world.clear()
     winner = None
+
+    bgm = load_music('background.mp3')
+    bgm.set_volume(12)
+    bgm.repeat_play()
 
     bg = Background()
     game_world.add_object(bg, 0)
@@ -40,8 +44,12 @@ def enter():
 
 
 def exit():
+    global bgm
     game_world.clear()
 
+    if bgm:
+        bgm.stop()
+    del bgm
 
 def handle_events():
     events = get_events()
