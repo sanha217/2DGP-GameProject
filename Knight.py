@@ -4,6 +4,7 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
     SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_W
 
 from state_machine import StateMachine
+from pico2d import load_image, get_time, draw_rectangle, load_wav
 import game_framework
 
 # 설정 변수
@@ -153,11 +154,14 @@ class Dash:
         self.knight = knight
         self.dash_distance = frame_size * 3
         self.dash_speed_pps = RUN_SPEED_PPS * 3
+        self.dash_sound = load_wav('Hero Dash.mp3')
+        self.dash_sound.set_volume(32)
 
     def enter(self, event):
         self.knight.frame = 0
         self.knight.dir = self.knight.face_dir
         self.start_x = self.knight.x
+        self.dash_sound.play()
 
     def exit(self):
         self.knight.dir = 0

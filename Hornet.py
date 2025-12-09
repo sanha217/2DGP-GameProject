@@ -4,6 +4,7 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDL_GetKeyboardState, \
     SDL_SCANCODE_J, SDL_SCANCODE_L, SDL_SCANCODE_I
 
 from state_machine import StateMachine
+from pico2d import load_image, get_time, draw_rectangle, load_wav
 import game_framework
 
 canvas_width = 1280
@@ -158,6 +159,8 @@ class Dash:
         self.hornet = hornet
         self.dash_distance = frame_size * 3
         self.dash_speed_pps = RUN_SPEED_PPS * 3
+        self.dash_sound = load_wav('Hero Dash.mp3')
+        self.dash_sound.set_volume(32)
 
         self.frame_coords = [
             (3, 2779, 255, 137),
@@ -169,6 +172,7 @@ class Dash:
         self.hornet.frame = 0
         self.hornet.dir = self.hornet.face_dir
         self.start_x = self.hornet.x
+        self.dash_sound.play()
 
     def exit(self):
         self.hornet.dir = 0
