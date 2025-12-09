@@ -61,6 +61,8 @@ class Attack:
     def __init__(self, hornet):
         self.hornet = hornet
         self.attack_box_offset = (-51, -47, 37, 50)
+        self.attack_sound = load_wav('Sword Sound.mp3')
+        self.attack_sound.set_volume(32)
 
         self.frame_coords = [
             (1808, 22, 358, 301),
@@ -71,6 +73,7 @@ class Attack:
     def enter(self, event):
         self.hornet.frame = 0
         self.has_attacked = False
+        self.attack_sound.play()
 
     def exit(self):
         pass

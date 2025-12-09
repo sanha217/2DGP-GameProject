@@ -70,10 +70,13 @@ class Attack:
     def __init__(self, knight):
         self.knight = knight
         self.attack_box_offset = (-51, -47, 37, 50)
+        self.attack_sound = load_wav('Sword Sound.mp3')
+        self.attack_sound.set_volume(32)
 
     def enter(self, event):
         self.knight.frame = 0
         self.has_attacked = False
+        self.attack_sound.play()
 
     def exit(self):
         pass
