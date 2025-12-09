@@ -555,6 +555,7 @@ class Hornet:
 
     def update(self):
         self.state_machine.update()
+        self.x = max(frame_size // 2, min(self.x, canvas_width - frame_size // 2))
 
     def draw_hp(self):
         hp_width = 30
