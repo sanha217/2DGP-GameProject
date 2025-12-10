@@ -104,7 +104,7 @@ class KnightSkill:
         else:
             self.image.clip_composite_draw(0, bottom, 512, 128, 0, 'h', self.x, self.y, 512, 128)
 
-        draw_rectangle(*self.get_body_box())
+        # draw_rectangle(*self.get_body_box())
 
     def get_body_box(self):
         return self.x - 256, self.y - 64, self.x + 256, self.y + 64
@@ -638,11 +638,12 @@ class Knight:
     def draw(self):
         self.state_machine.draw()
         body_box = self.get_body_box()
-        if body_box:
-            draw_rectangle(*body_box)
+        # if body_box:
+        #     draw_rectangle(*body_box)
         attack_box = self.get_attack_box()
-        if attack_box:
-            draw_rectangle(*attack_box)
+
+        # if attack_box:
+        #     draw_rectangle(*attack_box)
         self.draw_hp()
         self.draw_gauge()
 

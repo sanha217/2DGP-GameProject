@@ -37,10 +37,32 @@ def draw():
     clear_canvas()
     play_mode.draw_world()
     dim_image.draw(640, 360, 1280, 720)
-    if play_mode.winner:
-        font.draw(500, 400, f"{play_mode.winner} WINS!", (255, 0, 0))
 
-    font.draw(400, 300, "Press SPACE to Restart", (255, 255, 255))
+    if play_mode.winner == "Knight":
+        src_x = 0
+        src_y = 2048 - (128 * 9)  # 896
+
+        play_mode.knight.image.clip_draw(
+            src_x, src_y, 128, 128,
+            640, 360,
+            128, 128
+        )
+
+    elif play_mode.winner == "Hornet":
+        src_x = 3
+        src_y = 13086 - 953 - 216
+        w, h = 184, 216
+
+        play_mode.hornet.image.clip_draw(
+            src_x, src_y, w, h,
+            640, 360,
+            w * 0.7, h * 0.7
+        )
+
+    if play_mode.winner:
+        font.draw(490, 470, f"{play_mode.winner} WINS!", (255, 0, 0))
+
+    font.draw(390, 250, "Press SPACE to Restart", (255, 255, 255))
     update_canvas()
 
 

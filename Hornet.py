@@ -116,7 +116,7 @@ class Skill:
 
         ex, ey_top, ew, eh = self.effect_coords[effect_idx]
         ebottom = self.hornet.image_height - ey_top - eh
-        scale_factor = 1.1
+        scale_factor = 1.0
 
         effect_display_w = int(ew * scale_factor)
         effect_display_h = int(eh * scale_factor)
@@ -171,7 +171,7 @@ class Skill:
         return (left, bottom, right, top)
 
     def get_attack_box(self):
-        scale_factor = 1.1
+        scale_factor = 1.0
 
         box_w = int(424 * scale_factor)
         box_h = int(447 * scale_factor)
@@ -735,10 +735,10 @@ class Hornet:
         self.state_machine.draw()
 
         body_box = self.get_body_box()
-        if body_box: draw_rectangle(*body_box)
+        # if body_box: draw_rectangle(*body_box)
 
         attack_box = self.get_attack_box()
-        if attack_box: draw_rectangle(*attack_box)
+        # if attack_box: draw_rectangle(*attack_box)
         self.draw_hp()
         self.draw_gauge()
 
